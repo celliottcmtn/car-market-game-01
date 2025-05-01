@@ -16,41 +16,59 @@ market_data = pd.DataFrame({
     "Market_Size": [50000, 40000, 15000, 10000, 25000]
 })
 
-# Market simulation function
+# Improved market simulation function
 def simulate_market_performance(speed, aesthetics, reliability, efficiency, tech, price):
+    # Prioritize speed and aesthetics for sports car determination
+    is_sports_car = speed >= 8 and aesthetics >= 7
+    
+    # Calculate scores with adjusted weights to make success easier
     market_data["Score"] = (
-        abs(market_data["Preferred_Speed"] - speed) +
-        abs(market_data["Preferred_Aesthetics"] - aesthetics) +
-        abs(market_data["Preferred_Reliability"] - reliability) +
-        abs(market_data["Preferred_Efficiency"] - efficiency) +
-        abs(market_data["Preferred_Tech"] - tech)
+        0.8 * abs(market_data["Preferred_Speed"] - speed) +
+        0.8 * abs(market_data["Preferred_Aesthetics"] - aesthetics) +
+        0.8 * abs(market_data["Preferred_Reliability"] - reliability) +
+        0.8 * abs(market_data["Preferred_Efficiency"] - efficiency) +
+        0.8 * abs(market_data["Preferred_Tech"] - tech)
     )
+    
+    # Override for sports cars - ensure high-speed, high-aesthetic cars match with sports segment
+    if is_sports_car:
+        # Force sports car match by artificially lowering the sports segment score
+        sports_idx = market_data[market_data["Segment"] == "Sports"].index[0]
+        market_data.at[sports_idx, "Score"] = market_data["Score"].min() - 1
+    
     best_match = market_data.loc[market_data["Score"].idxmin()]
     
-    price_factor = max(0, 1 - abs(price - best_match["Avg_Price"]) / best_match["Avg_Price"])
-    estimated_sales = int(best_match["Market_Size"] * (1 - best_match["Score"] / 50) * price_factor)
-    cost = (speed * 2000) + (aesthetics * 1500) + (reliability * 1800) + (efficiency * 1700) + (tech * 2500)
+    # More forgiving price factor
+    price_factor = max(0.2, 1 - abs(price - best_match["Avg_Price"]) / best_match["Avg_Price"])
+    
+    # More generous estimated sales calculation
+    estimated_sales = int(best_match["Market_Size"] * (1 - best_match["Score"] / 60) * price_factor)
+    
+    # Reduced production costs
+    cost = (speed * 1500) + (aesthetics * 1200) + (reliability * 1400) + (efficiency * 1300) + (tech * 2000)
+    
     profit = estimated_sales * (price - cost)
     
     feedback = ""
+    # Adjusted feedback thresholds to be more generous
     if estimated_sales == 0:
         feedback = "🚨 No sales! Your price is too high for the options you've chosen. Try lowering your price or better matching your car's features to a market segment."
-    elif profit < -10000000:
-        feedback = "🚨 Catastrophic Loss! Your car is losing an extreme amount of money. You need to **completely rethink** your strategy—reduce production costs, increase the price, and make sure your car matches the right market segment."
+    elif profit < -5000000:
+        feedback = "🚨 Significant Loss! Your car is losing money. Try reducing production costs or increasing the price to better match the market."
     elif profit < -1000000:
-        feedback = "⚠️ Huge Loss! Your losses are very high. Consider making significant adjustments—lowering expensive features, improving efficiency, or adjusting pricing to better fit the market."
+        feedback = "⚠️ Loss! Consider adjusting your features or price to better appeal to your target market."
     elif profit < -100000:
-        feedback = "🚨 Major Loss! Your car is losing a significant amount of money. You need to make drastic changes—consider lowering production costs, increasing the price, or improving the balance of features to appeal to buyers."
-    elif profit < -50000:
-        feedback = "🔴 Moderate Loss! Your car is losing money. Try reducing unnecessary costs, adjusting the price, or making the car more appealing to its target market."
+        feedback = "🔴 Small Loss! You're close to breaking even. A few tweaks to features or price should get you into profitable territory."
     elif profit < 0:
-        feedback = "Your car is losing money. Consider increasing the price or reducing costs by adjusting features like speed, aesthetics, or technology."
+        feedback = "Almost there! Small adjustments to price or features should make your car profitable."
     elif profit < 20000:
-        feedback = "⚠️ Low Profit! Your profit is minimal. Consider small adjustments to your price or features to make your car more appealing."
-    elif profit < 50000:
-        feedback = "Your profit is low. Try optimizing your price or enhancing the car's appeal to boost sales."
+        feedback = "⚠️ Breaking Even! Your car is just covering costs. Minor adjustments could improve profitability."
+    elif profit < 100000:
+        feedback = "✅ Profitable! Your car is making money. Nice work!"
+    elif profit < 500000:
+        feedback = "🌟 Very Profitable! Great job balancing features and price for this market segment."
     else:
-        feedback = "Your car is profitable! Maintain a balance between cost and market demand for even better results."
+        feedback = "🏆 Extremely Profitable! Outstanding work creating an ideal car for the market!"
     
     return {
         "Feedback": feedback,
@@ -60,29 +78,29 @@ def simulate_market_performance(speed, aesthetics, reliability, efficiency, tech
         "Cost": cost
     }
 
-# Function to generate feedback for a profit amount
+# Updated function to generate feedback for a profit amount
 def get_feedback_for_profit(profit, sales=None):
     if sales == 0 or sales is not None and sales < 10:
         return "🚨 No sales! Your price is too high for the options you've chosen. Try lowering your price or better matching your car's features to a market segment."
     
-    if profit < -10000000:
-        return "🚨 Catastrophic Loss! Your car is losing an extreme amount of money. You need to **completely rethink** your strategy—reduce production costs, increase the price, and make sure your car matches the right market segment."
+    if profit < -5000000:
+        return "🚨 Significant Loss! Your car is losing money. Try reducing production costs or increasing the price to better match the market."
     elif profit < -1000000:
-        return "⚠️ Huge Loss! Your losses are very high. Consider making significant adjustments—lowering expensive features, improving efficiency, or adjusting pricing to better fit the market."
+        return "⚠️ Loss! Consider adjusting your features or price to better appeal to your target market."
     elif profit < -100000:
-        return "🚨 Major Loss! Your car is losing a significant amount of money. You need to make drastic changes—consider lowering production costs, increasing the price, or improving the balance of features to appeal to buyers."
-    elif profit < -50000:
-        return "🔴 Moderate Loss! Your car is losing money. Try reducing unnecessary costs, adjusting the price, or making the car more appealing to its target market."
+        return "🔴 Small Loss! You're close to breaking even. A few tweaks to features or price should get you into profitable territory."
     elif profit < 0:
-        return "Your car is losing money. Consider increasing the price or reducing costs by adjusting features like speed, aesthetics, or technology."
+        return "Almost there! Small adjustments to price or features should make your car profitable."
     elif profit < 20000:
-        return "⚠️ Low Profit! Your profit is minimal. Consider small adjustments to your price or features to make your car more appealing."
-    elif profit < 50000:
-        return "Your profit is low. Try optimizing your price or enhancing the car's appeal to boost sales."
+        return "⚠️ Breaking Even! Your car is just covering costs. Minor adjustments could improve profitability."
+    elif profit < 100000:
+        return "✅ Profitable! Your car is making money. Nice work!"
+    elif profit < 500000:
+        return "🌟 Very Profitable! Great job balancing features and price for this market segment."
     else:
-        return "Your car is profitable! Maintain a balance between cost and market demand for even better results."
+        return "🏆 Extremely Profitable! Outstanding work creating an ideal car for the market!"
 
-# AI image generation function using OpenAI DALL·E
+# Improved AI image generation function 
 def generate_car_image(speed, aesthetics, reliability, efficiency, tech, price):
     try:
         openai_api_key = os.getenv("OPENAI_API_KEY")
@@ -95,8 +113,25 @@ def generate_car_image(speed, aesthetics, reliability, efficiency, tech, price):
             "Content-Type": "application/json"
         }
         
+        # Improved car type determination that prioritizes speed for sports cars
+        car_type = "sports car"
+        if speed >= 8 and aesthetics >= 7:
+            car_type = "sports car"  # Force sports car if speed and aesthetics are high
+        elif price > 60000:
+            car_type = "luxury sedan"
+        elif price > 25000 and efficiency < 8:
+            car_type = "mid-range SUV"
+        elif price > 25000 and efficiency >= 8:
+            car_type = "eco-friendly SUV"
+        elif price > 20000 and efficiency >= 8:
+            car_type = "eco-friendly compact"
+        else:
+            car_type = "budget hatchback"
+            
+        aesthetics_desc = "plain and basic" if aesthetics <= 3 else "sleek and stylish" if aesthetics <= 7 else "wild and extravagant"
+        
         # Enhanced prompt to strongly prevent text in images
-        prompt = f"A {'sports car' if price > 80000 else 'luxury sedan' if price > 60000 else 'mid-range SUV' if price > 25000 and efficiency < 8 else 'eco-friendly SUV' if price > 25000 and efficiency >= 8 else 'eco-friendly compact' if price > 20000 and efficiency >= 8 else 'budget hatchback'} with a {'plain and basic' if aesthetics <= 3 else 'sleek and stylish' if aesthetics <= 7 else 'wild and extravagant'} design and funky color palette. The car should match its market segment: a high-performance sports car for extreme speed, a refined luxury sedan for premium comfort, a mid-range SUV for versatility, an eco-friendly SUV for sustainable family travel, an eco-friendly compact for maximum efficiency, or a budget hatchback for affordability. The car should be driving on a winding mountain road. The image should be comic/photorealistic. VERY IMPORTANT: DO NOT INCLUDE ANY TEXT, LETTERS, NUMBERS, WORDS, LABELS, WATERMARKS, LOGOS, OR SYMBOLS OF ANY KIND IN THE IMAGE."
+        prompt = f"A {car_type} with a {aesthetics_desc} design and funky color palette. The car should match its market segment: a high-performance sports car for extreme speed, a refined luxury sedan for premium comfort, a mid-range SUV for versatility, an eco-friendly SUV for sustainable family travel, an eco-friendly compact for maximum efficiency, or a budget hatchback for affordability. The car should be driving on a winding mountain road. The image should be comic/photorealistic. VERY IMPORTANT: DO NOT INCLUDE ANY TEXT, LETTERS, NUMBERS, WORDS, LABELS, WATERMARKS, LOGOS, OR SYMBOLS OF ANY KIND IN THE IMAGE."
         
         data = {
             "model": "dall-e-3",
@@ -599,7 +634,6 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                         Reliability: {best_design['Reliability']}, Efficiency: {best_design['Efficiency']}, 
                         Tech: {best_design['Tech']}, Price: ${best_design['Price']:,}</p>
                     </div>
-                    """, unsafe_allow_html=True)
                     
                     # Create a DataFrame for the summary
                     import pandas as pd
