@@ -470,6 +470,14 @@ if sum(1 for value in st.session_state.achievements.values() if value) > 0:
         You've earned {earned} out of 8 possible achievements!
     </p>
     """, unsafe_allow_html=True)
+    
+    # Show achievement count
+    earned = sum(1 for value in st.session_state.achievements.values() if value)
+    st.markdown(f"""
+    <p style="margin-top: 10px;">
+        You've earned {earned} out of 8 possible achievements!
+    </p>
+    """, unsafe_allow_html=True)
             
             # Show achievement count
             earned = sum(1 for value in st.session_state.achievements.values() if value)
