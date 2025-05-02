@@ -51,7 +51,7 @@ def load_styles():
     
     .achievement-name {
         display: block;
-        font-weight:bold;
+        font-weight: bold;
         font-size: 14px;
     }
     
@@ -66,11 +66,30 @@ def load_styles():
         font-weight: bold;
     }
     
-    /* Car name styling */
+    /* Car name styling - updated for automatic generation */
     .car-name-header {
         text-align: center;
         color: #3F51B5;
         margin: 5px 0;
+    }
+    
+    .car-name-display {
+        text-align: center;
+        color: #3F51B5;
+        font-size: 28px;
+        font-weight: bold;
+        margin: 15px 0;
+        padding: 10px 15px;
+        background-color: #f5f5f5;
+        border-radius: 8px;
+        border: 2px solid #3F51B5;
+        animation: name-glow 3s ease-in-out infinite;
+    }
+    
+    @keyframes name-glow {
+        0% { box-shadow: 0 0 5px rgba(63, 81, 181, 0.2); }
+        50% { box-shadow: 0 0 15px rgba(63, 81, 181, 0.6); }
+        100% { box-shadow: 0 0 5px rgba(63, 81, 181, 0.2); }
     }
     
     .car-tagline {
