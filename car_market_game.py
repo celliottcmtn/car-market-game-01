@@ -383,7 +383,7 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                         
                         st.rerun()
         
-        # Show achievements in sidebar on game screen
+# Show achievements in sidebar on game screen
 if sum(1 for value in st.session_state.achievements.values() if value) > 0:
     st.markdown("### 🏆 Your Achievements")
     achievement_html = "<div style='display: flex; flex-wrap: wrap;'>"
@@ -454,6 +454,14 @@ if sum(1 for value in st.session_state.achievements.values() if value) > 0:
     
     achievement_html += "</div>"
     st.markdown(achievement_html, unsafe_allow_html=True)
+    
+    # Show achievement count
+    earned = sum(1 for value in st.session_state.achievements.values() if value)
+    st.markdown(f"""
+    <p style="margin-top: 10px;">
+        You've earned {earned} out of 8 possible achievements!
+    </p>
+    """, unsafe_allow_html=True)
     
     # Show achievement count
     earned = sum(1 for value in st.session_state.achievements.values() if value)
