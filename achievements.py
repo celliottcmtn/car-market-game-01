@@ -41,7 +41,7 @@ def check_achievements(result, design):
     
     # Sports King (profit in sports segment)
     if not st.session_state.achievements["sports_king"] and result["Best Market Segment"] == "Sports" and result["Profit"] > 100000:
-        st.session_st.session_state.achievements["sports_king"] = True
+        st.session_state.achievements["sports_king"] = True
         achievements_earned.append({
             "name": "Speed Demon!", 
             "description": "Created a highly profitable sports car",
