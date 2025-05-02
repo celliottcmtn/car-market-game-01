@@ -3,7 +3,7 @@ import pandas as pd
 import requests
 import os
 import time
-import random  # Added for random market events
+import random
 
 # Simulated market data
 market_data = pd.DataFrame({
@@ -16,6 +16,73 @@ market_data = pd.DataFrame({
     "Preferred_Tech": [6, 7, 10, 9, 8],
     "Market_Size": [50000, 40000, 15000, 10000, 25000]
 })
+
+# Car naming system functions
+def generate_tagline(speed, aesthetics, reliability, efficiency, tech):
+    """Generate a marketing tagline based on car's top features"""
+    taglines = []
+    
+    if speed >= 8:
+        taglines.append(random.choice(["Fast as lightning", "Speed redefined", "Feel the rush"]))
+    if aesthetics >= 8:
+        taglines.append(random.choice(["Beauty on wheels", "Turn heads everywhere", "Stunning design"]))
+    if reliability >= 8:
+        taglines.append(random.choice(["Built to last", "Reliability guaranteed", "Never lets you down"]))
+    if efficiency >= 8:
+        taglines.append(random.choice(["Eco-friendly power", "Green machine", "Efficiency champion"]))
+    if tech >= 8:
+        taglines.append(random.choice(["Future on wheels", "Tech marvel", "Smart driving"]))
+    
+    if len(taglines) > 0:
+        return random.choice(taglines)
+    
+    # Default taglines if no attribute is high enough
+    default_taglines = [
+        "Drive the difference",
+        "Your journey begins here",
+        "Designed for you",
+        "The smart choice",
+        "Go beyond expectations"
+    ]
+    return random.choice(default_taglines)
+
+def generate_model_name(segment, speed, aesthetics):
+    """Generate a model name based on car segment and features"""
+    
+    # Prefixes based on segment
+    segment_prefixes = {
+        "Budget": ["Eco", "Smart", "City", "Metro", "Value"],
+        "Family": ["Voyage", "Journey", "Comfort", "Family", "Explore"],
+        "Luxury": ["Elite", "Premium", "Prestige", "Sovereign", "Royal"],
+        "Sports": ["Turbo", "Velocity", "Raptor", "Thunder", "Sprint"],
+        "Eco-Friendly": ["Green", "Leaf", "Earth", "Eco", "Nature"]
+    }
+    
+    # Suffixes based on speed and aesthetics
+    suffixes = []
+    if speed >= 7:
+        suffixes.extend(["GT", "X", "Sport", "Turbo", "RS"])
+    if aesthetics >= 7:
+        suffixes.extend(["Elegance", "Style", "Design", "Lux", "SL"])
+    if len(suffixes) == 0:
+        suffixes = ["S", "SE", "LE", "XE", "Plus"]
+    
+    # Generate name
+    prefix = random.choice(segment_prefixes.get(segment, ["Model"]))
+    suffix = random.choice(suffixes)
+    
+    # Add a random number between 100 and 900 (in increments of 50)
+    number = random.randrange(1, 10) * 100 + random.choice([0, 5]) * 10
+    
+    # Assemble the name in one of several formats
+    name_format = random.choice([
+        f"{prefix} {number}",
+        f"{prefix} {number}{suffix}",
+        f"{prefix}{suffix} {number}",
+        f"{prefix} {suffix}"
+    ])
+    
+    return name_format
 
 # Achievement system functions
 def check_achievements(result, design):
@@ -94,7 +161,6 @@ def check_achievements(result, design):
         })
     
     return achievements_earned
-
 # Improved market simulation function with random events
 def simulate_market_performance(speed, aesthetics, reliability, efficiency, tech, price):
     # Prioritize speed and aesthetics for sports car determination
@@ -128,9 +194,9 @@ def simulate_market_performance(speed, aesthetics, reliability, efficiency, tech
     
     profit = estimated_sales * (price - cost)
     
-    # Random market event (25% chance)
+    # Random market event (increased chance to 40% to make them more common)
     market_event = None
-    if random.random() < 0.25:
+    if random.random() < 0.40:  # Increased from 25% to 40%
         events = [
             {
                 "name": "Fuel Price Spike", 
@@ -292,344 +358,34 @@ def generate_car_image(speed, aesthetics, reliability, efficiency, tech, price):
             return f"Error: {response.status_code} - {response.text}"
     except Exception as e:
         return f"Error generating image: {str(e)}"
-
-# Streamlit UI
-try:
-    st.set_page_config(page_title="Business Administration Car Market Simulation Game", layout="wide", initial_sidebar_state="expanded")
-except Exception as e:
-    # This means the page config was already set, which is fine
-    pass
-
-# Improved CSS with better responsive layout and smaller start button
-st.markdown("""
-    <style>
-    /* Fix for black background on mobile */
-    body {
-        background-color: #ffffff !important;
+.custom-container, .custom-container-tariff, .instructions-container, .achievement-container, .market-event-container, .car-name-container {
+        padding: 10px;
     }
-    .main .block-container {
-        background-color: #ffffff !important;
-    }
-    .stApp {
-        background-color: #ffffff !important;
-    }
-    
-    /* Fix for text color visibility on mobile */
-    .stMarkdown, .stText, p, h1, h2, h3, h4, h5, h6, span, div, label {
-        color: #333333 !important;
-    }
-    /* Make sure sliders, inputs and other controls have visible text */
-    .stSlider label, .stNumberInput label, .stSelectbox label, .stButton label {
-        color: #333333 !important;
-    }
-    /* Make sure all input text is visible */
-    input, select, textarea {
-        color: #333333 !important;
-    }
-    /* Specifically fix the price input field */
-    .stNumberInput input, .stNumberInput .css-qrbaxs {
-        color: #333333 !important;
-        background-color: #ffffff !important;
-    }
-    /* Fix for any input field background colors */
-    .css-qrbaxs, .css-zt5igj, input[type="number"], .stNumberInput div[data-baseweb="input"] {
-        background-color: #ffffff !important;
-        color: #333333 !important;
-    }
-    /* Fix Trump tariff button color scheme - more aggressive approach */
-    button[key="apply_tariff"],
-    [data-testid="baseButton-secondary"][aria-label="Impose Trump Tariff +25%"],
-    div:has(> button:contains("Impose Trump Tariff")),
-    button:contains("Trump Tariff"),
-    button:contains("Impose Trump"),
-    div:has(> span:contains("Impose Trump Tariff")) button {
-        background-color: #FF5733 !important;
-        color: white !important;
-        border-color: #CC4422 !important;
-        opacity: 1 !important;
-    }
-    /* Override Streamlit button colors */
     .stButton button {
-        color: white !important;
+        width: 100%;
     }
-    /* Make sure the tariff button text is always visible */
-    button:contains("Trump") span,
-    button:contains("Tariff") span,
-    div:has(> button:contains("Trump")) span {
-        color: white !important;
-    }
-    /* Strong dark text for important elements */
-    strong, b {
-        color: #111111 !important;
-    }
-    
-    .custom-container {
-        border: 2px solid #4CAF50;
-        padding: 15px;
-        border-radius: 10px;
-        background-color: #ffffff;
-        color: #000000;
-        margin-bottom: 20px;
-        max-width: 900px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    .custom-container-tariff {
-        border: 2px solid #FF5733;
-        padding: 15px;
-        border-radius: 10px;
-        background-color: #fff3e0;
-        color: #000000;
-        margin-bottom: 20px;
-        max-width: 900px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    /* New styles for achievements and market events */
-    .achievement-container {
-        border: 2px solid #FFD700;
-        padding: 15px;
-        border-radius: 10px;
-        background-color: #FFFDF0;
-        color: #000000;
-        margin-bottom: 20px;
-        max-width: 900px;
-        margin-left: auto;
-        margin-right: auto;
-        animation: glow 1.5s infinite alternate;
-    }
-    @keyframes glow {
-        from {
-            box-shadow: 0 0 5px -5px #FFD700;
-        }
-        to {
-            box-shadow: 0 0 10px 5px #FFD700;
-        }
-    }
-    .market-event-container {
-        border: 2px solid #9C27B0;
-        padding: 15px;
-        border-radius: 10px;
-        background-color: #F3E5F5;
-        color: #000000;
-        margin-bottom: 20px;
-        max-width: 900px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    .market-event-positive {
-        color: #4CAF50 !important;
-        font-weight: bold;
-    }
-    .market-event-negative {
-        color: #F44336 !important;
-        font-weight: bold;
-    }
-    .section-divider {
-        border-top: 1px solid #ccc;
-        margin-top: 10px;
-        padding-top: 10px;
-    }
-    .header-green {
-        color: #4CAF50;
-    }
-    .header-orange {
-        color: #FF5733;
-    }
-    .header-purple {
-        color: #9C27B0;
-    }
-    .header-gold {
-        color: #FFD700;
-    }
-    .instructions-container {
-        border: 2px solid #3498db;
-        padding: 20px;
-        border-radius: 10px;
-        background-color: #e8f4f8;
-        color: #000000;
-        margin-bottom: 20px;
-        max-width: 800px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    .attempt-counter {
-        font-weight: bold;
-        color: #3498db;
-        font-size: 18px;
-        text-align: center;
-        margin: 10px 0;
-        padding: 10px;
-        background-color: #e8f4f8;
-        border-radius: 5px;
-        max-width: 900px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    .prev-attempt {
-        font-size: 14px;
-        padding: 10px;
-        background-color: #f0f0f0;
-        border-radius: 5px;
-        margin-bottom: 10px;
-    }
-    .centered-header-container {
-        max-width: 900px;
-        margin-left: auto;
-        margin-right: auto;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    .centered-container {
-        max-width: 900px;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    /* Significantly smaller start button on desktop with manual size control */
     .small-button {
-        max-width: 120px !important;
-        margin: 0 auto !important;
-        display: block !important;
+        max-width: 100%;
     }
-    .small-button button {
-        width: 120px !important;
-        min-width: unset !important;
-        max-width: 120px !important;
-    }
-    /* Override Streamlit default button expansion */
-    div[data-testid="stButton"] {
-        width: auto !important;
-    }
-    /* Button colors */
-    .stButton button {
-        font-weight: bold;
-        color: white !important;
-    }
-    /* Primary buttons should always have white text */
-    button[kind="primary"], 
-    .stButton button[data-baseweb="button"][kind="primary"],
-    [data-testid="baseButton-primary"] {
-        color: white !important;
-    }
-    /* Red warning buttons */
-    button[kind="secondary"], 
-    .stButton button[data-baseweb="button"][kind="secondary"],
-    [data-testid="baseButton-secondary"] {
-        background-color: #FF5733 !important;
-        border-color: #FF5733 !important;
-        color: white !important;
-    }
-    .red-button button {
-        background-color: #FF5733 !important;
-        border-color: #FF5733 !important;
-        color: white !important;
-    }
-    /* Responsive design */
-    @media (max-width: 768px) {
-        .hide-on-mobile {
-            display: none !important;
-        }
-        .custom-container, .custom-container-tariff, .instructions-container, .achievement-container, .market-event-container {
-            padding: 10px;
-        }
-        .stButton button {
-            width: 100%;
-        }
-        .small-button {
-            max-width: 100%;
-        }
-    }
-    /* Improve settings and results layout */
-    .settings-panel {
-        background-color: #f9f9f9;
-        padding: 15px;
-        border-radius: 10px;
-        margin-bottom: 15px;
-    }
-    .results-panel {
-        margin-top: 20px;
-    }
+}
+@media (min-width: 992px) {
     .sidebar-placeholder {
-        display: none;
+        display: block;
+        width: 100%;
+        height: 1px;
     }
-    @media (min-width: 992px) {
-        .sidebar-placeholder {
-            display: block;
-            width: 100%;
-            height: 1px;
-        }
-        .results-container {
-            padding-left: 20px;
-        }
+    .results-container {
+        padding-left: 20px;
     }
-    /* Achievement badge styles */
-    .achievement-badge {
-        display: inline-block;
-        margin: 5px;
-        padding: 8px 15px;
-        background-color: #FFD700;
-        border-radius: 30px;
-        color: #333 !important;
-        font-weight: bold;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-    .achievement-icon {
-        font-size: 24px;
-        margin-right: 8px;
-        vertical-align: middle;
-    }
-    .achievement-name {
-        vertical-align: middle;
-    }
-    /* Achievements panel styles */
-    .achievements-panel {
-        background-color: #f8f9fa;
-        border-radius: 10px;
-        padding: 15px;
-        margin-top: 20px;
-        border: 1px solid #dee2e6;
-    }
-    .achievement-tab {
-        display: inline-block;
-        padding: 8px 15px;
-        background-color: #e9ecef;
-        border-radius: 5px 5px 0 0;
-        margin-right: 5px;
-        cursor: pointer;
-    }
-    .achievement-tab.active {
-        background-color: #fff;
-        border-bottom: 2px solid #4CAF50;
-    }
-    /* Animated notification for new achievements */
-    @keyframes slideIn {
-        0% { transform: translateY(-100%); opacity: 0; }
-        10% { transform: translateY(0); opacity: 1; }
-        90% { transform: translateY(0); opacity: 1; }
-        100% { transform: translateY(-100%); opacity: 0; }
-    }
-    .achievement-notification {
-        position: fixed;
-        top: 20px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 9999;
-        background-color: #FFD700;
-        color: #333 !important;
-        padding: 15px 25px;
-        border-radius: 50px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-        animation: slideIn 4s ease-in-out;
-        animation-fill-mode: forwards;
-        text-align: center;
-        font-weight: bold;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-width: 300px;
-    }
-    </style>
+}
+
+/* Animation for market events */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+    100% { transform: scale(1); }
+}
+</style>
 """, unsafe_allow_html=True)
 
 # Initialize session state
@@ -665,6 +421,15 @@ if 'total_achievements_earned' not in st.session_state:
     st.session_state.total_achievements_earned = 0
 if 'show_achievements' not in st.session_state:
     st.session_state.show_achievements = False
+# Car name and tagline
+if 'car_name' not in st.session_state:
+    st.session_state.car_name = ""
+if 'car_tagline' not in st.session_state:
+    st.session_state.car_tagline = ""
+if 'car_names' not in st.session_state:
+    st.session_state.car_names = []
+if 'car_taglines' not in st.session_state:
+    st.session_state.car_taglines = []
 
 # Function to reset the game
 def reset_game():
@@ -676,8 +441,11 @@ def reset_game():
     st.session_state.attempts_results = []
     st.session_state.car_designs = []
     st.session_state.new_achievements = []
+    st.session_state.car_name = ""
+    st.session_state.car_tagline = ""
+    st.session_state.car_names = []
+    st.session_state.car_taglines = []
     # Note: we don't reset achievements when starting a new game
-
 # Logo and header in the same row
 logo_path = "logo.png"  # Replace with the actual logo file path
 
@@ -721,10 +489,11 @@ if st.session_state.game_state == "instructions":
             <li><strong>Objective:</strong> Design a profitable car by adjusting its features and price.</li>
             <li><strong>You have 3 attempts</strong> to create a profitable car design.</li>
             <li>Customize your car's specifications using the sliders.</li>
+            <li><strong style="color: #3F51B5;">Name your car</strong> and see what marketing tagline it gets!</li>
             <li>Click "Simulate Market" to see how your car performs.</li>
             <li>Learn from each attempt and adjust your strategy.</li>
-            <li>Watch for <span style="color: #9C27B0; font-weight: bold;">Random Market Events</span> that can affect your profits!</li>
-            <li>Earn <span style="color: #FFD700; font-weight: bold;">Achievements</span> by reaching specific milestones.</li>
+            <li><strong style="color: #9C27B0;">Watch for Random Market Events!</strong> These happen frequently and can affect your profits.</li>
+            <li><strong style="color: #FFD700;">Earn Achievements</strong> by reaching specific milestones.</li>
             <li>After your third attempt, you'll see an AI-generated image of your final car design.</li>
             <li>The "Impose Trump Tariff" button lets you see how a 25% tariff would affect your profits.</li>
         </ol>
@@ -743,6 +512,8 @@ if st.session_state.game_state == "instructions":
         st.session_state.attempts_used = 0
         st.session_state.attempts_results = []
         st.session_state.car_designs = []
+        st.session_state.car_names = []
+        st.session_state.car_taglines = []
         st.rerun()
 
     # Show achievements panel if user has earned any
@@ -829,7 +600,6 @@ if st.session_state.game_state == "instructions":
                 You've earned {st.session_state.total_achievements_earned} out of 8 possible achievements!
             </p>
             """, unsafe_allow_html=True)
-
 # Playing the game or game over state
 elif st.session_state.game_state == "playing" or st.session_state.game_state == "game_over":
     # Use a two-column layout for the main game interface
@@ -847,19 +617,22 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
         if len(st.session_state.attempts_results) > 0:
             st.markdown("### Previous Attempts")
             for i, (design, result) in enumerate(zip(st.session_state.car_designs, st.session_state.attempts_results)):
-                with st.expander(f"Attempt {i+1}: ${result['Profit']:,}"):
+                with st.expander(f"Attempt {i+1}: {st.session_state.car_names[i]} - ${result['Profit']:,}"):
+                    st.markdown(f"""
+                    <p style="font-style: italic; color: #3F51B5; margin-bottom: 10px;">"{st.session_state.car_taglines[i]}"</p>
+                    """, unsafe_allow_html=True)
                     st.write(f"**Market:** {result['Best Market Segment']}")
                     st.write(f"**Sales:** {result['Estimated Sales']} units")
                     st.write(f"**Settings:** Speed: {design['Speed']}, Aesthetics: {design['Aesthetics']}, " +
                             f"Reliability: {design['Reliability']}, Efficiency: {design['Efficiency']}, " +
                             f"Tech: {design['Tech']}, Price: ${design['Price']:,}")
                     
-                    # Show market event if there was one
+                    # Show market event if there was one (HIGHLIGHTED!)
                     if result.get('Market_Event'):
                         event = result['Market_Event']
                         st.markdown(f"""
-                        <div style="margin-top: 10px; padding: 5px 10px; background-color: #f3e5f5; border-radius: 5px;">
-                            <strong style="color: #9C27B0;">📢 Market Event:</strong> {event['name']} - {event['effect']}
+                        <div style="margin-top: 10px; padding: 8px 12px; background-color: #f3e5f5; border-radius: 8px; border: 2px solid #9C27B0;">
+                            <strong style="color: #9C27B0; font-size: 1.1em;">📢 Market Event:</strong> {event['name']} - {event['effect']}
                         </div>
                         """, unsafe_allow_html=True)
         
@@ -890,6 +663,42 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
         disabled = st.session_state.game_state == "game_over"
         
         with st.container():
+            # Car naming system - ADDED FEATURE
+            st.markdown('<div class="car-name-container">', unsafe_allow_html=True)
+            st.markdown('<h3 class="car-name-header">🚗 Name Your Car</h3>', unsafe_allow_html=True)
+            
+            # Generate a suggested name based on features if user hasn't entered one yet
+            predicted_segment = "Family"  # Default
+            if speed >= 8 and aesthetics >= 7:
+                predicted_segment = "Sports"
+            elif price > 60000 or (aesthetics >= 8 and tech >= 8):
+                predicted_segment = "Luxury"
+            elif efficiency >= 8:
+                predicted_segment = "Eco-Friendly"
+            elif price < 25000:
+                predicted_segment = "Budget"
+            
+            suggested_name = generate_model_name(predicted_segment, speed, aesthetics)
+            
+            # Text input for car name with suggested name as default
+            car_name = st.text_input("Car Name", 
+                                    value=suggested_name if st.session_state.car_name == "" else st.session_state.car_name, 
+                                    max_chars=30, 
+                                    placeholder="Enter car name", 
+                                    disabled=disabled)
+            
+            # Preview the marketing tagline that will be generated
+            if not disabled and car_name:
+                preview_tagline = generate_tagline(speed, aesthetics, reliability, efficiency, tech)
+                st.markdown(f'<p class="car-tagline">"{preview_tagline}"</p>', unsafe_allow_html=True)
+                st.markdown('<p style="text-align: center; font-size: 0.8em; margin-top: 5px;">Marketing tagline will be generated based on your car\'s features</p>', unsafe_allow_html=True)
+            
+            st.markdown('</div>', unsafe_allow_html=True)
+            
+            # Store the car name for use later
+            st.session_state.car_name = car_name
+            
+            # Car design sliders
             st.markdown('<div class="settings-panel">', unsafe_allow_html=True)
             speed = st.slider("Speed", 1, 10, default_speed, disabled=disabled, 
                              help="Higher speed increases cost but appeals to Sports segment")
@@ -908,9 +717,16 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
             if st.session_state.game_state == "playing":
                 sim_button = st.button("Simulate Market", type="primary")
                 if sim_button:
+                    if not car_name.strip():
+                        st.error("Please give your car a name before simulating!")
+                        st.stop()
+                        
                     with st.spinner("Simulating market performance..."):
                         # Reset tariff state when simulating new market
                         st.session_state.tariff_applied = False
+                        
+                        # Generate tagline
+                        tagline = generate_tagline(speed, aesthetics, reliability, efficiency, tech)
                         
                         # Store design for future reference
                         st.session_state.car_designs.append({
@@ -922,6 +738,10 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                             "Price": price
                         })
                         
+                        # Store car name and tagline
+                        st.session_state.car_names.append(car_name)
+                        st.session_state.car_taglines.append(tagline)
+                        
                         # Simulate market
                         st.session_state.result = simulate_market_performance(speed, aesthetics, reliability, efficiency, tech, price)
                         st.session_state.attempts_results.append(st.session_state.result)
@@ -932,6 +752,9 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                         if new_achievements:
                             st.session_state.new_achievements = new_achievements
                             st.session_state.total_achievements_earned += len(new_achievements)
+                        
+                        # Clear car name for next attempt
+                        st.session_state.car_name = ""
                         
                         # Generate AI image only on final attempt
                         if st.session_state.attempts_used >= 3:
@@ -1019,8 +842,7 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                 You've earned {earned} out of 8 possible achievements!
             </p>
             """, unsafe_allow_html=True)
-    
-    # Right column for results display
+# Right column for results display
     with main_col2:
         st.markdown('<div class="results-panel">', unsafe_allow_html=True)
         
@@ -1031,11 +853,11 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                 if st.session_state.game_state == "game_over" and st.session_state.car_image_url and "Error" not in st.session_state.car_image_url:
                     try:
                         # Add attractive box about AI-generated image with better contrast
-                        st.markdown("""
+                        st.markdown(f"""
                         <div style="background-color: #3498db; color: white; padding: 12px; 
                         border-radius: 5px; text-align: center; margin-bottom: 10px; font-weight: bold;
                         box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                        ✨ This image is uniquely generated by AI based on your chosen customization ✨
+                        ✨ This is your {st.session_state.car_names[-1]}: {st.session_state.car_taglines[-1]} ✨
                         </div>
                         """, unsafe_allow_html=True)
                         st.image(st.session_state.car_image_url, use_container_width=True)
@@ -1048,6 +870,16 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                     st.markdown(f"<div class='attempt-counter'>You have {attempts_left} attempt{'s' if attempts_left != 1 else ''} left</div>", unsafe_allow_html=True)
                 else:
                     st.markdown("<div class='attempt-counter'>Final Result</div>", unsafe_allow_html=True)
+                
+                # Car name and tagline display
+                latest_index = len(st.session_state.car_names) - 1
+                if latest_index >= 0:
+                    st.markdown(f"""
+                    <div class="car-name-container">
+                        <h2 class="car-name-header">{st.session_state.car_names[latest_index]}</h2>
+                        <p class="car-tagline">"{st.session_state.car_taglines[latest_index]}"</p>
+                    </div>
+                    """, unsafe_allow_html=True)
                 
                 # Display results
                 result = st.session_state.result
@@ -1064,7 +896,7 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Display market event if one occurred
+                # Display market event if one occurred (MORE PROMINENT!)
                 if result.get('Market_Event'):
                     event = result['Market_Event']
                     profit_change_class = "market-event-positive" if event['profit_change'] >= 0 else "market-event-negative"
@@ -1074,20 +906,20 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                     profit_change_str = f"+${event['profit_change']:,}" if event['profit_change'] >= 0 else f"-${abs(event['profit_change']):,}"
                     sales_change_str = f"+{event['sales_change']}" if event.get('sales_change', 0) >= 0 else f"-{abs(event['sales_change'])}"
                     
+                    # Animated container to make the event more noticeable
                     st.markdown(f"""
-                    <div class="market-event-container">
-                        <h2 class="header-purple">📢 Market Event!</h2>
-                        <h3>{event['name']}</h3>
-                        <p><strong>Effect:</strong> {event['effect']}</p>
+                    <div class="market-event-container" style="animation: pulse 1.5s infinite; box-shadow: 0 0 15px rgba(156, 39, 176, 0.5);">
+                        <h2 class="header-purple" style="font-size: 1.5em; text-align: center;">📢 MARKET EVENT!</h2>
+                        <h3 style="text-align: center; color: #9C27B0;">{event['name']}</h3>
+                        <p style="font-size: 1.1em; text-align: center;"><strong>Effect:</strong> {event['effect']}</p>
                         <div class="section-divider">
-                            <p><strong>Impact on Profit:</strong> <span class="{profit_change_class}">{profit_change_str}</span></p>
-                            {f'<p><strong>Impact on Sales:</strong> <span class="{sales_change_class}">{sales_change_str} units</span></p>' if event.get('sales_change') != 0 else ''}
+                            <p style="text-align: center;"><strong>Impact on Profit:</strong> <span class="{profit_change_class}" style="font-size: 1.2em;">{profit_change_str}</span></p>
+                            {f'<p style="text-align: center;"><strong>Impact on Sales:</strong> <span class="{sales_change_class}" style="font-size: 1.2em;">{sales_change_str} units</span></p>' if event.get('sales_change') != 0 else ''}
                         </div>
-                        <p style="font-style: italic; margin-top: 10px;">Market events occur randomly and can help or hinder your car's performance!</p>
+                        <p style="font-style: italic; margin-top: 10px; text-align: center;">Market events occur randomly and can help or hinder your car's performance!</p>
                     </div>
                     """, unsafe_allow_html=True)
-                
-                # Display tariff information if it has been applied
+# Display tariff information if it has been applied
                 if st.session_state.tariff_applied:
                     tariffed_cost = st.session_state.result['Cost'] * 1.25  # Adding 25% tariff
                     latest_design = st.session_state.car_designs[-1]
@@ -1125,7 +957,8 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                     # Best design callout
                     st.markdown(f"""
                     <div style="background-color: #e8f4f8; padding: 15px; border-radius: 10px; border: 2px solid #3498db; margin-bottom: 20px;">
-                        <h3 style="color: #3498db; text-align: center;">🏆 Best Performing Design: Attempt {best_attempt_index+1}</h3>
+                        <h3 style="color: #3498db; text-align: center;">🏆 Best Performing Design: {st.session_state.car_names[best_attempt_index]}</h3>
+                        <p style="text-align: center; font-style: italic; color: #3F51B5; margin-bottom: 15px;">"{st.session_state.car_taglines[best_attempt_index]}"</p>
                         <p><strong>Profit:</strong> ${best_attempt['Profit']:,}</p>
                         <p><strong>Market Segment:</strong> {best_attempt['Best Market Segment']}</p>
                         <p><strong>Settings:</strong> Speed: {best_design['Speed']}, Aesthetics: {best_design['Aesthetics']}, 
@@ -1144,8 +977,12 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                         # Add market event indicator if there was one
                         event_badge = "📢 " if result.get('Market_Event') else ""
                         
+                        # Include car name in summary
+                        car_name = st.session_state.car_names[i]
+                        
                         summary_data.append({
                             "Attempt": f"{best_badge}{event_badge}Attempt {i+1}",
+                            "Car Name": car_name,
                             "Market Segment": result['Best Market Segment'],
                             "Sales": result['Estimated Sales'],
                             "Profit": f"${result['Profit']:,}",
@@ -1162,8 +999,7 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                     # Display the summary table
                     st.markdown("### All Attempts Comparison")
                     st.dataframe(summary_df, use_container_width=True)
-                    
-                    # Achievements earned summary
+# Achievements earned summary
                     earned_achievements = sum(1 for value in st.session_state.achievements.values() if value)
                     if earned_achievements > 0:
                         st.markdown(f"""
@@ -1292,7 +1128,7 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
             st.markdown("""
             <div style="text-align: center; padding: 30px; background-color: #f5f5f5; border-radius: 10px;">
                 <h3>Your results will appear here</h3>
-                <p>Adjust the car settings on the left and click "Simulate Market" to see how your design performs.</p>
+                <p>Adjust the car settings on the left, name your car, and click "Simulate Market" to see how your design performs.</p>
                 <p style="margin-top: 15px; font-weight: bold; color: #9C27B0;">Watch for random market events that can affect your car's performance!</p>
                 <p style="font-weight: bold; color: #FFD700;">Earn achievements by reaching special milestones!</p>
             </div>
