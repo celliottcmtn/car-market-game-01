@@ -1,149 +1,88 @@
+# styling.py
 import streamlit as st
 
 def load_styles():
-    """Load all CSS styles for the application"""
+    """Load and apply custom CSS styles to the Streamlit app."""
     st.markdown("""
-    <style>        
-    .custom-container, .custom-container-tariff, .instructions-container, .achievement-container, .market-event-container, .car-name-container {
-            padding: 10px;
-        }
-        .stButton button {
-            width: 100%;
-        }
-        .small-button {
-            max-width: 100%;
-        }
-    }
-    @media (min-width: 992px) {
-        .sidebar-placeholder {
-            display: block;
-            width: 100%;
-            height: 1px;
-        }
-        .results-container {
-            padding-left: 20px;
-        }
-    }
-
-    /* Animation for market events */
-    @keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.02); }
-        100% { transform: scale(1); }
-    }
-
-    /* Achievement badges */
-    .achievement-badge {
-        display: inline-block;
-        margin: 5px;
-        padding: 8px 12px;
-        background-color: #f8f9fa;
-        border: 2px solid #FFD700;
-        border-radius: 8px;
-        text-align: center;
-    }
-    
-    .achievement-icon {
-        display: block;
-        font-size: 24px;
-        margin-bottom: 5px;
-    }
-    
-    .achievement-name {
-        display: block;
-        font-weight: bold;
-        font-size: 14px;
-    }
-    
-    /* Market event styling */
-    .market-event-positive {
-        color: #4CAF50;
-        font-weight: bold;
-    }
-    
-    .market-event-negative {
-        color: #F44336;
-        font-weight: bold;
-    }
-    
-    /* Car name styling - updated for automatic generation */
-    .car-name-header {
-        text-align: center;
-        color: #3F51B5;
-        margin: 5px 0;
-    }
-    
-    .car-name-display {
-        text-align: center;
-        color: #3F51B5;
-        font-size: 28px;
-        font-weight: bold;
-        margin: 15px 0;
-        padding: 10px 15px;
-        background-color: #f5f5f5;
-        border-radius: 8px;
-        border: 2px solid #3F51B5;
-        animation: name-glow 3s ease-in-out infinite;
-    }
-    
-    @keyframes name-glow {
-        0% { box-shadow: 0 0 5px rgba(63, 81, 181, 0.2); }
-        50% { box-shadow: 0 0 15px rgba(63, 81, 181, 0.6); }
-        100% { box-shadow: 0 0 5px rgba(63, 81, 181, 0.2); }
-    }
-    
-    .car-tagline {
-        text-align: center;
-        font-style: italic;
-        color: #607D8B;
-        margin: 5px 0 15px 0;
+    <style>
+    /* Main theme colors */
+    :root {
+        --primary-color: #ff4b4b;
+        --secondary-color: #4b4bff;
+        --background-color: #f0f2f6;
+        --text-color: #262730;
+        --highlight-color: #ffd166;
     }
     
     /* Header styling */
-    .header-green {
-        color: #4CAF50;
+    .css-10trblm {
+        color: var(--primary-color);
+        font-weight: 800;
     }
     
-    .header-orange {
-        color: #FF9800;
+    /* Button styling */
+    .stButton > button {
+        border-radius: 20px;
+        font-weight: 600;
     }
     
-    .header-purple {
-        color: #9C27B0;
+    .stButton > button[data-baseweb="button"] {
+        background-color: var(--primary-color);
+        transition: all 0.3s ease;
     }
     
-    .header-gold {
-        color: #FFD700;
+    .stButton > button[data-baseweb="button"]:hover {
+        background-color: #ff2e2e;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
     
-    /* Section dividers */
-    .section-divider {
-        margin: 15px 0;
-        padding-top: 10px;
-        border-top: 1px solid #e0e0e0;
+    /* Slider styling */
+    .stSlider > div > div > div {
+        background-color: var(--secondary-color);
     }
     
-    /* Attempt counter */
-    .attempt-counter {
-        background-color: #f5f5f5;
-        padding: 8px 12px;
-        border-radius: 4px;
-        text-align: center;
-        font-weight: bold;
-        margin-bottom: 15px;
-        border: 1px solid #e0e0e0;
+    /* Expander styling */
+    .streamlit-expanderHeader {
+        font-weight: 600;
+        color: var(--text-color);
     }
     
-    /* Achievement notification */
-    .achievement-notification {
-        display: flex;
-        align-items: center;
-        background-color: #FFF9C4;
-        padding: 10px 15px;
-        border-radius: 8px;
-        margin-bottom: 15px;
-        border: 2px solid #FFD700;
-        animation: pulse 1.5s infinite;
+    /* Achievement notification styling */
+    .stToast {
+        background-color: var(--highlight-color);
+        color: var(--text-color);
+        border-radius: 10px;
+        font-weight: 600;
+        padding: 10px;
+    }
+    
+    /* Car model name styling */
+    h2 {
+        color: var(--secondary-color);
+        margin-bottom: 0;
+    }
+    
+    /* Tagline styling */
+    h2 + p {
+        font-style: italic;
+        margin-top: 0;
+        color: #666;
+    }
+    
+    /* Game summary styling */
+    .stMetric {
+        background-color: rgba(75, 75, 255, 0.1);
+        border-radius: 10px;
+        padding: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+    
+    /* Mobile responsiveness */
+    @media screen and (max-width: 768px) {
+        .stButton > button {
+            width: 100%;
+        }
     }
     </style>
     """, unsafe_allow_html=True)
