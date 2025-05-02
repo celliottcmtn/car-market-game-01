@@ -1,176 +1,135 @@
+# car_naming.py
 import random
 
-# Expanded libraries of car naming options
-BUDGET_PREFIXES = [
-    "Metro", "Civic", "Echo", "Swift", "Neo", "Spark", "Pulse", "Spirit", "Orbit", "Spree",
-    "Thrift", "Eco", "Smart", "City", "Urban", "Compact", "Mini", "Micro", "Value", "Basic",
-    "Prime", "Zip", "Quick", "Solo", "Link", "Slice", "Edge", "Core", "Pure", "Simply",
-    "Express", "Agile", "Lite", "Easy", "Vista", "Breeze", "Focus", "Vita", "Essential", "Nimble",
-    "Pace", "Bolt", "Flyer", "Ready", "Active", "Direct", "Point", "Spot", "Flash", "Dash",
-    "Stride", "Step", "Path", "Way", "Route", "Street", "Stroll", "Walk", "Run", "Cruise",
-    "Sync", "Wave", "Logic", "Sense", "True", "Wise", "Smart", "Sharp", "Keen", "Brief",
-    "Short", "Small", "Tiny", "Neat", "Trim", "Slim", "Thin", "Petite", "Light", "Feather",
-    "Fleet", "Brisk", "Prompt", "Rapid", "Hasty", "Swift", "Speedy", "Quick", "Fast", "Velocity"
+# Lists for name generation
+performance_prefixes = ["Thunder", "Bolt", "Viper", "Raptor", "Blaze", "Storm", "Fury", "Flash"]
+efficiency_prefixes = ["Eco", "Volt", "Glide", "Flow", "Breeze", "Stream", "Vista", "Pulse"]
+comfort_prefixes = ["Royal", "Luxe", "Plush", "Elite", "Velvet", "Serenity", "Harmony", "Zenith"]
+style_prefixes = ["Aura", "Chroma", "Prism", "Mirage", "Eclipse", "Apex", "Phantom", "Cosmos"]
+
+model_suffixes = ["X", "GT", "RS", "LX", "Sport", "Prime", "Plus", "Elite", "EV", "ZX"]
+number_models = ["100", "200", "300", "500", "750", "1000", "3000", "5000"]
+
+# Tagline components
+performance_taglines = [
+    "Unleash the power within",
+    "Dominate every road",
+    "Feel the adrenaline rush",
+    "Performance that speaks for itself",
+    "Leave the competition behind",
 ]
 
-FAMILY_PREFIXES = [
-    "Journey", "Voyage", "Odyssey", "Quest", "Venture", "Expedition", "Pioneer", "Discovery", "Explorer", "Navigator",
-    "Compass", "Guide", "Pilot", "Captain", "Leader", "Commander", "Ranger", "Scout", "Tracker", "Pathfinder",
-    "Legacy", "Heritage", "Tribute", "Honor", "Respect", "Esteem", "Dignify", "Prestige", "Acclaim", "Renown",
-    "Family", "Comfort", "Haven", "Sanctuary", "Refuge", "Shelter", "Harbor", "Dock", "Port", "Berth",
-    "Oasis", "Retreat", "Resort", "Villa", "Manor", "Estate", "Domain", "Realm", "Kingdom", "Empire",
-    "Harmony", "Unity", "Together", "Alliance", "Coalition", "Union", "League", "Fellowship", "Society", "Community",
-    "Grace", "Elegance", "Poise", "Charm", "Appeal", "Allure", "Attract", "Entice", "Captivate", "Enchant",
-    "Horizon", "Skyline", "Frontier", "Boundary", "Border", "Margin", "Edge", "Verge", "Brink", "Threshold",
-    "Meadow", "Valley", "Prairie", "Plain", "Field", "Pasture", "Glade", "Clearing", "Opening", "Hollow"
+efficiency_taglines = [
+    "Efficiency reimagined",
+    "Go further, use less",
+    "Smart driving for a smarter world",
+    "Efficiency without compromise",
+    "The future of sustainable driving",
 ]
 
-LUXURY_PREFIXES = [
-    "Elite", "Premium", "Sovereign", "Majestic", "Royal", "Noble", "Imperial", "Dynasty", "Monarch", "Regent",
-    "Prestige", "Distinction", "Excellence", "Eminence", "Grandeur", "Splendor", "Magnificence", "Opulence", "Lavish", "Lush",
-    "Supreme", "Paramount", "Foremost", "Preeminent", "Peerless", "Unmatched", "Unrivaled", "Unequaled", "Unsurpassed", "Unexcelled",
-    "Caliber", "Quality", "Standard", "Grade", "Class", "Level", "Status", "Rank", "Standing", "Position",
-    "Genesis", "Origin", "Source", "Wellspring", "Fount", "Fountain", "Spring", "Birthplace", "Cradle", "Root",
-    "Legacy", "Heritage", "Lineage", "Descent", "Ancestry", "Pedigree", "Bloodline", "Line", "Stock", "Extraction",
-    "Pinnacle", "Summit", "Peak", "Crest", "Top", "Zenith", "Crown", "Apex", "Acme", "Culmination",
-    "Majesty", "Nobility", "Dignity", "Honor", "Glory", "Renown", "Fame", "Celebrity", "Notoriety", "Repute",
-    "Sublime", "Exquisite", "Superb", "Elegant", "Graceful", "Refined", "Polished", "Cultured", "Cultivated", "Sophisticated"
+comfort_taglines = [
+    "Where luxury meets comfort",
+    "Experience first-class travel on wheels",
+    "Comfort that embraces you",
+    "Redefining the driving experience",
+    "Your sanctuary on the road",
 ]
 
-SPORTS_PREFIXES = [
-    "Turbo", "Velocity", "Raptor", "Thunder", "Bolt", "Sprint", "Surge", "Blitz", "Storm", "Cyclone",
-    "Flash", "Speed", "Dash", "Thrust", "Torque", "Boost", "Power", "Force", "Drive", "Rush",
-    "Jet", "Rocket", "Missile", "Comet", "Meteor", "Asteroid", "Blaze", "Flame", "Fire", "Inferno",
-    "Viper", "Cobra", "Falcon", "Eagle", "Hawk", "Tiger", "Panther", "Leopard", "Jaguar", "Cheetah",
-    "Nitro", "Octane", "Piston", "Charger", "Accelerator", "Dynamo", "Magnum", "Arsenal", "Fury", "Rage",
-    "Agile", "Nimble", "Quick", "Rapid", "Brisk", "Swift", "Prompt", "Expedite", "Hasten", "Hurry",
-    "Slipstream", "Airflow", "Current", "Tide", "Surge", "Swell", "Surge", "Crest", "Ridge", "Peak",
-    "Adrenaline", "Impulse", "Stimulus", "Incentive", "Impetus", "Momentum", "Propulsion", "Thrust", "Push", "Shove",
-    "Extreme", "Radical", "Intense", "Severe", "Acute", "Sharp", "Keen", "Fierce", "Vehement", "Ardent"
+style_taglines = [
+    "Turn heads wherever you go",
+    "Style that stands out",
+    "Design that makes a statement",
+    "Beauty in motion",
+    "Crafted to perfection",
 ]
 
-ECO_PREFIXES = [
-    "Green", "Leaf", "Earth", "Nature", "Bio", "Eco", "Solar", "Terra", "Gaia", "Verdant",
-    "Pure", "Clean", "Fresh", "Crisp", "Clear", "Bright", "Lush", "Vibrant", "Vivid", "Bloom",
-    "Sustain", "Renew", "Revive", "Recycle", "Restore", "Replenish", "Reuse", "Reduce", "Recover", "Reclaim",
-    "Breeze", "Wind", "Air", "Sky", "Cloud", "Mist", "Vapor", "Breath", "Gust", "Draft",
-    "Meadow", "Prairie", "Field", "Garden", "Grove", "Forest", "Woods", "Thicket", "Jungle", "Wilderness",
-    "Stream", "River", "Lake", "Pond", "Pool", "Spring", "Fountain", "Cascade", "Falls", "Flow",
-    "Seed", "Sprout", "Bud", "Grow", "Bloom", "Blossom", "Flower", "Plant", "Tree", "Shrub",
-    "Dawn", "Sunrise", "Morning", "Day", "Light", "Shine", "Glow", "Radiate", "Beam", "Ray",
-    "Horizon", "Panorama", "Vista", "View", "Scene", "Landscape", "Terrain", "Region", "Zone", "Area"
+price_taglines = [
+    "Luxury within reach",
+    "Premium quality without the premium price",
+    "Value that exceeds expectations",
+    "The smart choice for discerning drivers",
+    "Engineered for excellence, priced for reality",
 ]
 
-# Suffixes based on attributes
-SPEED_SUFFIXES = ["GT", "RS", "X", "Sport", "Turbo", "Dash", "Bolt", "Nitro", "Rush", "Racing"]
-AESTHETICS_SUFFIXES = ["Elegance", "Design", "Style", "Lux", "SL", "Grand", "Premium", "Elite", "Signature", "Edition"]
-RELIABILITY_SUFFIXES = ["Pro", "Plus", "Ultra", "Max", "Supreme", "Prime", "Excel", "Alpha", "One", "Top"]
-EFFICIENCY_SUFFIXES = ["Eco", "Blue", "Green", "Smart", "Wise", "E", "Hybrid", "Pulse", "Flow", "Zero"]
-TECH_SUFFIXES = ["Tech", "Connect", "Link", "Smart", "iDrive", "Sync", "Wave", "Future", "Next", "Vision"]
-
-# Number formats
-NUMBER_FORMATS = [
-    lambda: str(random.randrange(1, 10) * 100),
-    lambda: str(random.randrange(1, 10) * 100 + 50),
-    lambda: str(random.randrange(1, 10) * 10),
-    lambda: str(random.randrange(1, 10)),
-    lambda: ""  # Sometimes no number
-]
-
-def generate_tagline(speed, aesthetics, reliability, efficiency, tech):
-    """Generate a marketing tagline based on car's top features"""
-    taglines = []
+def generate_model_name(performance, efficiency, comfort, style):
+    """Generate a car model name based on its attributes."""
+    # Determine the dominant attribute
+    attributes = {
+        "performance": performance,
+        "efficiency": efficiency,
+        "comfort": comfort,
+        "style": style
+    }
     
-    if speed >= 8:
-        taglines.append(random.choice(["Fast as lightning", "Speed redefined", "Feel the rush"]))
-    if aesthetics >= 8:
-        taglines.append(random.choice(["Beauty on wheels", "Turn heads everywhere", "Stunning design"]))
-    if reliability >= 8:
-        taglines.append(random.choice(["Built to last", "Reliability guaranteed", "Never lets you down"]))
-    if efficiency >= 8:
-        taglines.append(random.choice(["Eco-friendly power", "Green machine", "Efficiency champion"]))
-    if tech >= 8:
-        taglines.append(random.choice(["Future on wheels", "Tech marvel", "Smart driving"]))
+    dominant_attribute = max(attributes, key=attributes.get)
     
-    if len(taglines) > 0:
-        return random.choice(taglines)
+    # Select a prefix based on the dominant attribute
+    if dominant_attribute == "performance":
+        prefix = random.choice(performance_prefixes)
+    elif dominant_attribute == "efficiency":
+        prefix = random.choice(efficiency_prefixes)
+    elif dominant_attribute == "comfort":
+        prefix = random.choice(comfort_prefixes)
+    else:  # style
+        prefix = random.choice(style_prefixes)
     
-    # Default taglines if no attribute is high enough
-    default_taglines = [
-        "Drive the difference",
-        "Your journey begins here",
-        "Designed for you",
-        "The smart choice",
-        "Go beyond expectations"
-    ]
-    return random.choice(default_taglines)
-
-def generate_model_name(segment, speed, aesthetics, reliability, efficiency, tech):
-    """Generate a model name based on car segment and features"""
+    # Choose a suffix format
+    suffix_type = random.randint(1, 3)
     
-    # Choose prefix library based on segment
-    if segment == "Budget":
-        prefix_library = BUDGET_PREFIXES
-    elif segment == "Family":
-        prefix_library = FAMILY_PREFIXES
-    elif segment == "Luxury":
-        prefix_library = LUXURY_PREFIXES
-    elif segment == "Sports":
-        prefix_library = SPORTS_PREFIXES
-    elif segment == "Eco-Friendly":
-        prefix_library = ECO_PREFIXES
+    if suffix_type == 1:
+        # Letter/word suffix
+        suffix = random.choice(model_suffixes)
+        return f"{prefix} {suffix}"
+    elif suffix_type == 2:
+        # Number suffix
+        number = random.choice(number_models)
+        return f"{prefix} {number}"
     else:
-        # Default/fallback
-        prefix_library = FAMILY_PREFIXES
-    
-    # Choose a random prefix from the appropriate library
-    prefix = random.choice(prefix_library)
-    
-    # Choose suffixes based on highest attributes (top 2)
+        # Combined suffix
+        suffix = random.choice(model_suffixes)
+        number = random.choice(number_models)
+        return f"{prefix} {suffix}-{number}"
+
+def generate_tagline(performance, efficiency, comfort, style):
+    """Generate a tagline based on car attributes."""
+    # Determine the top two attributes
     attributes = [
-        ("speed", speed, SPEED_SUFFIXES),
-        ("aesthetics", aesthetics, AESTHETICS_SUFFIXES),
-        ("reliability", reliability, RELIABILITY_SUFFIXES),
-        ("efficiency", efficiency, EFFICIENCY_SUFFIXES),
-        ("tech", tech, TECH_SUFFIXES)
+        ("performance", performance),
+        ("efficiency", efficiency),
+        ("comfort", comfort),
+        ("style", style)
     ]
     
-    # Sort by attribute value (highest first)
+    # Sort by attribute value (descending)
     attributes.sort(key=lambda x: x[1], reverse=True)
     
-    # Get suffixes from the top 2 attributes if high enough (>= 7)
-    potential_suffixes = []
-    for attr_name, attr_value, suffix_list in attributes[:2]:
-        if attr_value >= 7:
-            potential_suffixes.extend(suffix_list)
+    # Get the top two attributes
+    top_attribute = attributes[0][0]
+    second_attribute = attributes[1][0]
     
-    # If no attributes are high enough, use a default mixture
-    if not potential_suffixes:
-        potential_suffixes = SPEED_SUFFIXES + AESTHETICS_SUFFIXES + RELIABILITY_SUFFIXES[:3]
+    # Select taglines based on the top attributes
+    if top_attribute == "performance":
+        main_tagline = random.choice(performance_taglines)
+    elif top_attribute == "efficiency":
+        main_tagline = random.choice(efficiency_taglines)
+    elif top_attribute == "comfort":
+        main_tagline = random.choice(comfort_taglines)
+    else:  # style
+        main_tagline = random.choice(style_taglines)
     
-    # Choose a random suffix
-    suffix = random.choice(potential_suffixes)
+    # Sometimes add a price-based tagline
+    if random.random() < 0.3:
+        second_tagline = random.choice(price_taglines)
+    else:
+        if second_attribute == "performance":
+            second_tagline = random.choice(performance_taglines)
+        elif second_attribute == "efficiency":
+            second_tagline = random.choice(efficiency_taglines)
+        elif second_attribute == "comfort":
+            second_tagline = random.choice(comfort_taglines)
+        else:  # style
+            second_tagline = random.choice(style_taglines)
     
-    # Generate a number (or empty string)
-    number_format = random.choice(NUMBER_FORMATS)
-    number = number_format()
-    
-    # Assemble the name in one of several formats
-    name_formats = [
-        f"{prefix} {number}",
-        f"{prefix} {number} {suffix}",
-        f"{prefix} {suffix} {number}",
-        f"{prefix} {suffix}",
-        f"{prefix}{suffix} {number}"
-    ]
-    
-    # Filter out formats that would result in double spaces when number is empty
-    valid_formats = [fmt.replace("  ", " ") for fmt in name_formats]
-    if number == "":
-        valid_formats = [fmt for fmt in valid_formats if "  " not in fmt]
-    
-    return random.choice(valid_formats).strip()
-
-def generate_version_name(base_name, version):
-    """Add version number to the car name"""
-    return f"{base_name} V{version}"
+    # Combine taglines with a connector
+    connector = random.choice([".", " ", ". ", " - "])
+    return f"{main_tagline}{connector}{second_tagline}"
