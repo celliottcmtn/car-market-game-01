@@ -41,4 +41,38 @@ def check_achievements(result, design):
     
     # Sports King (profit in sports segment)
     if not st.session_state.achievements["sports_king"] and result["Best Market Segment"] == "Sports" and result["Profit"] > 100000:
-        st.session_
+        st.session_st.session_state.achievements["sports_king"] = True
+        achievements_earned.append({
+            "name": "Speed Demon!", 
+            "description": "Created a highly profitable sports car",
+            "icon": "🏎️"
+        })
+    
+    # Budget Master (profit with low price)
+    if not st.session_state.achievements["budget_master"] and result["Best Market Segment"] == "Budget" and result["Profit"] > 50000:
+        st.session_state.achievements["budget_master"] = True
+        achievements_earned.append({
+            "name": "Budget Master!", 
+            "description": "Created a profitable budget car",
+            "icon": "📊"
+        })
+    
+    # Family Favorite (profit in family segment)
+    if not st.session_state.achievements["family_favorite"] and result["Best Market Segment"] == "Family" and result["Profit"] > 50000:
+        st.session_state.achievements["family_favorite"] = True
+        achievements_earned.append({
+            "name": "Family Favorite!", 
+            "description": "Created a profitable family car",
+            "icon": "👨‍👩‍👧‍👦"
+        })
+    
+    # Mega Profit (profit over 1M)
+    if not st.session_state.achievements["mega_profit"] and result["Profit"] > 1000000:
+        st.session_state.achievements["mega_profit"] = True
+        achievements_earned.append({
+            "name": "Mega Profit!", 
+            "description": "Made over $1,000,000 profit with a single car",
+            "icon": "💎"
+        })
+    
+    return achievements_earned
