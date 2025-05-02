@@ -383,36 +383,88 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                         
                         st.rerun()
         
-# Show achievements in sidebar on game screen
-if sum(1 for value in st.session_state.achievements.values() if value) > 0:
-    st.markdown("### 🏆 Your Achievements")
-    
-    # Create HTML for achievement badges
-    achievement_html = "<div style='display: flex; flex-wrap: wrap;'>"
-    
-    # Add badges for each earned achievement
-    badges = {
-        "first_profit": ("💰", "First Profit!"),
-        "big_seller": ("🚗", "Big Seller!"),
-        "luxury_master": ("👑", "Luxury Master!"),
-        "eco_genius": ("🌱", "Eco Genius!"),
-        "sports_king": ("🏎️", "Speed Demon!"),
-        "budget_master": ("📊", "Budget Master!"),
-        "family_favorite": ("👨‍👩‍👧‍👦", "Family Favorite!"),
-        "mega_profit": ("💎", "Mega Profit!")
-    }
-    
-    for achievement, (icon, name) in badges.items():
-        if st.session_state.achievements[achievement]:
-            achievement_html += f"""
+    # Show achievements in sidebar on game screen
+    if sum(1 for value in st.session_state.achievements.values() if value) > 0:
+        st.markdown("### 🏆 Your Achievements")
+        
+        # Build the HTML with individual achievement badges
+        badges_html = ""
+        
+        if st.session_state.achievements["first_profit"]:
+            badges_html += """
             <div class="achievement-badge" style="margin-bottom: 5px;">
-                <span class="achievement-icon">{icon}</span>
-                <span class="achievement-name">{name}</span>
+                <span class="achievement-icon">💰</span>
+                <span class="achievement-name">First Profit!</span>
             </div>
             """
-    
-    achievement_html += "</div>"
-    st.markdown(achievement_html, unsafe_allow_html=True)
+        
+        if st.session_state.achievements["big_seller"]:
+            badges_html += """
+            <div class="achievement-badge" style="margin-bottom: 5px;">
+                <span class="achievement-icon">🚗</span>
+                <span class="achievement-name">Big Seller!</span>
+            </div>
+            """
+        
+        if st.session_state.achievements["luxury_master"]:
+            badges_html += """
+            <div class="achievement-badge" style="margin-bottom: 5px;">
+                <span class="achievement-icon">👑</span>
+                <span class="achievement-name">Luxury Master!</span>
+            </div>
+            """
+        
+        if st.session_state.achievements["eco_genius"]:
+            badges_html += """
+            <div class="achievement-badge" style="margin-bottom: 5px;">
+                <span class="achievement-icon">🌱</span>
+                <span class="achievement-name">Eco Genius!</span>
+            </div>
+            """
+        
+        if st.session_state.achievements["sports_king"]:
+            badges_html += """
+            <div class="achievement-badge" style="margin-bottom: 5px;">
+                <span class="achievement-icon">🏎️</span>
+                <span class="achievement-name">Speed Demon!</span>
+            </div>
+            """
+        
+        if st.session_state.achievements["budget_master"]:
+            badges_html += """
+            <div class="achievement-badge" style="margin-bottom: 5px;">
+                <span class="achievement-icon">📊</span>
+                <span class="achievement-name">Budget Master!</span>
+            </div>
+            """
+        
+        if st.session_state.achievements["family_favorite"]:
+            badges_html += """
+            <div class="achievement-badge" style="margin-bottom: 5px;">
+                <span class="achievement-icon">👨‍👩‍👧‍👦</span>
+                <span class="achievement-name">Family Favorite!</span>
+            </div>
+            """
+        
+        if st.session_state.achievements["mega_profit"]:
+            badges_html += """
+            <div class="achievement-badge" style="margin-bottom: 5px;">
+                <span class="achievement-icon">💎</span>
+                <span class="achievement-name">Mega Profit!</span>
+            </div>
+            """
+        
+        # Wrap all badges in a flex container
+        complete_html = f'<div style="display: flex; flex-wrap: wrap;">{badges_html}</div>'
+        st.markdown(complete_html, unsafe_allow_html=True)
+        
+        # Show achievement count
+        earned = sum(1 for value in st.session_state.achievements.values() if value)
+        st.markdown(f"""
+        <p style="margin-top: 10px;">
+            You've earned {earned} out of 8 possible achievements!
+        </p>
+        """, unsafe_allow_html=True)
     
     # Show achievement count
     earned = sum(1 for value in st.session_state.achievements.values() if value)
