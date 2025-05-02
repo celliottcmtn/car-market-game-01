@@ -1,394 +1,14 @@
 import streamlit as st
 import pandas as pd
-import requests
-import os
 import time
 import random
 
-# Simulated market data
-market_data = pd.DataFrame({
-    "Segment": ["Budget", "Family", "Luxury", "Sports", "Eco-Friendly"],
-    "Avg_Price": [20000, 30000, 60000, 80000, 35000],
-    "Preferred_Speed": [4, 5, 7, 10, 5],
-    "Preferred_Aesthetics": [5, 6, 9, 8, 7],
-    "Preferred_Reliability": [8, 7, 6, 5, 9],
-    "Preferred_Efficiency": [7, 6, 4, 3, 10],
-    "Preferred_Tech": [6, 7, 10, 9, 8],
-    "Market_Size": [50000, 40000, 15000, 10000, 25000]
-})
-
-# Car naming system functions
-def generate_tagline(speed, aesthetics, reliability, efficiency, tech):
-    """Generate a marketing tagline based on car's top features"""
-    taglines = []
-    
-    if speed >= 8:
-        taglines.append(random.choice(["Fast as lightning", "Speed redefined", "Feel the rush"]))
-    if aesthetics >= 8:
-        taglines.append(random.choice(["Beauty on wheels", "Turn heads everywhere", "Stunning design"]))
-    if reliability >= 8:
-        taglines.append(random.choice(["Built to last", "Reliability guaranteed", "Never lets you down"]))
-    if efficiency >= 8:
-        taglines.append(random.choice(["Eco-friendly power", "Green machine", "Efficiency champion"]))
-    if tech >= 8:
-        taglines.append(random.choice(["Future on wheels", "Tech marvel", "Smart driving"]))
-    
-    if len(taglines) > 0:
-        return random.choice(taglines)
-    
-    # Default taglines if no attribute is high enough
-    default_taglines = [
-        "Drive the difference",
-        "Your journey begins here",
-        "Designed for you",
-        "The smart choice",
-        "Go beyond expectations"
-    ]
-    return random.choice(default_taglines)
-
-def generate_model_name(segment, speed, aesthetics):
-    """Generate a model name based on car segment and features"""
-    
-    # Prefixes based on segment
-    segment_prefixes = {
-        "Budget": ["Eco", "Smart", "City", "Metro", "Value"],
-        "Family": ["Voyage", "Journey", "Comfort", "Family", "Explore"],
-        "Luxury": ["Elite", "Premium", "Prestige", "Sovereign", "Royal"],
-        "Sports": ["Turbo", "Velocity", "Raptor", "Thunder", "Sprint"],
-        "Eco-Friendly": ["Green", "Leaf", "Earth", "Eco", "Nature"]
-    }
-    
-    # Suffixes based on speed and aesthetics
-    suffixes = []
-    if speed >= 7:
-        suffixes.extend(["GT", "X", "Sport", "Turbo", "RS"])
-    if aesthetics >= 7:
-        suffixes.extend(["Elegance", "Style", "Design", "Lux", "SL"])
-    if len(suffixes) == 0:
-        suffixes = ["S", "SE", "LE", "XE", "Plus"]
-    
-    # Generate name
-    prefix = random.choice(segment_prefixes.get(segment, ["Model"]))
-    suffix = random.choice(suffixes)
-    
-    # Add a random number between 100 and 900 (in increments of 50)
-    number = random.randrange(1, 10) * 100 + random.choice([0, 5]) * 10
-    
-    # Assemble the name in one of several formats
-    name_format = random.choice([
-        f"{prefix} {number}",
-        f"{prefix} {number}{suffix}",
-        f"{prefix}{suffix} {number}",
-        f"{prefix} {suffix}"
-    ])
-    
-    return name_format
-
-# Achievement system functions
-def check_achievements(result, design):
-    achievements_earned = []
-    
-    # First profitable car
-    if not st.session_state.achievements["first_profit"] and result["Profit"] > 0:
-        st.session_state.achievements["first_profit"] = True
-        achievements_earned.append({
-            "name": "First Profit!", 
-            "description": "Created your first profitable car",
-            "icon": "💰"
-        })
-    
-    # Big seller (over 1000 units)
-    if not st.session_state.achievements["big_seller"] and result["Estimated Sales"] > 1000:
-        st.session_state.achievements["big_seller"] = True
-        achievements_earned.append({
-            "name": "Big Seller!", 
-            "description": "Sold over 1,000 cars",
-            "icon": "🚗"
-        })
-    
-    # Luxury Master (profit in luxury segment)
-    if not st.session_state.achievements["luxury_master"] and result["Best Market Segment"] == "Luxury" and result["Profit"] > 100000:
-        st.session_state.achievements["luxury_master"] = True
-        achievements_earned.append({
-            "name": "Luxury Master!", 
-            "description": "Created a highly profitable luxury car",
-            "icon": "👑"
-        })
-    
-    # Eco Genius (profit in eco-friendly segment)
-    if not st.session_state.achievements["eco_genius"] and result["Best Market Segment"] == "Eco-Friendly" and result["Profit"] > 100000:
-        st.session_state.achievements["eco_genius"] = True
-        achievements_earned.append({
-            "name": "Eco Genius!", 
-            "description": "Created a highly profitable eco-friendly car",
-            "icon": "🌱"
-        })
-    
-    # Sports King (profit in sports segment)
-    if not st.session_state.achievements["sports_king"] and result["Best Market Segment"] == "Sports" and result["Profit"] > 100000:
-        st.session_state.achievements["sports_king"] = True
-        achievements_earned.append({
-            "name": "Speed Demon!", 
-            "description": "Created a highly profitable sports car",
-            "icon": "🏎️"
-        })
-    
-    # Budget Master (profit with low price)
-    if not st.session_state.achievements["budget_master"] and result["Best Market Segment"] == "Budget" and result["Profit"] > 50000:
-        st.session_state.achievements["budget_master"] = True
-        achievements_earned.append({
-            "name": "Budget Master!", 
-            "description": "Created a profitable budget car",
-            "icon": "📊"
-        })
-    
-    # Family Favorite (profit in family segment)
-    if not st.session_state.achievements["family_favorite"] and result["Best Market Segment"] == "Family" and result["Profit"] > 50000:
-        st.session_state.achievements["family_favorite"] = True
-        achievements_earned.append({
-            "name": "Family Favorite!", 
-            "description": "Created a profitable family car",
-            "icon": "👨‍👩‍👧‍👦"
-        })
-    
-    # Mega Profit (profit over 1M)
-    if not st.session_state.achievements["mega_profit"] and result["Profit"] > 1000000:
-        st.session_state.achievements["mega_profit"] = True
-        achievements_earned.append({
-            "name": "Mega Profit!", 
-            "description": "Made over $1,000,000 profit with a single car",
-            "icon": "💎"
-        })
-    
-    return achievements_earned
-# Improved market simulation function with random events
-def simulate_market_performance(speed, aesthetics, reliability, efficiency, tech, price):
-    # Prioritize speed and aesthetics for sports car determination
-    is_sports_car = speed >= 8 and aesthetics >= 7
-    
-    # Calculate scores with adjusted weights to make success easier
-    market_data["Score"] = (
-        0.8 * abs(market_data["Preferred_Speed"] - speed) +
-        0.8 * abs(market_data["Preferred_Aesthetics"] - aesthetics) +
-        0.8 * abs(market_data["Preferred_Reliability"] - reliability) +
-        0.8 * abs(market_data["Preferred_Efficiency"] - efficiency) +
-        0.8 * abs(market_data["Preferred_Tech"] - tech)
-    )
-    
-    # Override for sports cars - ensure high-speed, high-aesthetic cars match with sports segment
-    if is_sports_car:
-        # Force sports car match by artificially lowering the sports segment score
-        sports_idx = market_data[market_data["Segment"] == "Sports"].index[0]
-        market_data.at[sports_idx, "Score"] = market_data["Score"].min() - 1
-    
-    best_match = market_data.loc[market_data["Score"].idxmin()]
-    
-    # More forgiving price factor
-    price_factor = max(0.2, 1 - abs(price - best_match["Avg_Price"]) / best_match["Avg_Price"])
-    
-    # More generous estimated sales calculation
-    estimated_sales = int(best_match["Market_Size"] * (1 - best_match["Score"] / 60) * price_factor)
-    
-    # Reduced production costs
-    cost = (speed * 1500) + (aesthetics * 1200) + (reliability * 1400) + (efficiency * 1300) + (tech * 2000)
-    
-    profit = estimated_sales * (price - cost)
-    
-    # Random market event (increased chance to 40% to make them more common)
-    market_event = None
-    if random.random() < 0.40:  # Increased from 25% to 40%
-        events = [
-            {
-                "name": "Fuel Price Spike", 
-                "effect": "Fuel prices are up! Efficient cars are in higher demand.", 
-                "modifier": lambda p, s, c, seg: (
-                    p * 1.3 if seg == "Eco-Friendly" else 
-                    p * 0.9 if seg == "Sports" or seg == "Luxury" else 
-                    p
-                ),
-                "sales_modifier": lambda s, e: int(s * (1 + (e * 0.05)))
-            },
-            {
-                "name": "Economic Boom", 
-                "effect": "The economy is booming! Luxury and sports cars are selling well.", 
-                "modifier": lambda p, s, c, seg: (
-                    p * 1.3 if seg == "Luxury" or seg == "Sports" else 
-                    p
-                ),
-                "sales_modifier": lambda s, e: s
-            },
-            {
-                "name": "Safety Concerns", 
-                "effect": "Recent accidents have raised safety concerns. Reliable cars are in demand.", 
-                "modifier": lambda p, s, c, seg: p * (1 + (reliability * 0.02)),
-                "sales_modifier": lambda s, e: s
-            },
-            {
-                "name": "Tech Revolution", 
-                "effect": "New tech is trending! High-tech cars are selling better.", 
-                "modifier": lambda p, s, c, seg: p * (1 + (tech * 0.015)),
-                "sales_modifier": lambda s, e: s
-            },
-            {
-                "name": "New Competition", 
-                "effect": "A new competitor has entered your segment, reducing your sales.", 
-                "modifier": lambda p, s, c, seg: p * 0.85,
-                "sales_modifier": lambda s, e: int(s * 0.85)
-            },
-            {
-                "name": "Celebrity Endorsement", 
-                "effect": "A celebrity was seen driving a car like yours! Sales are up.", 
-                "modifier": lambda p, s, c, seg: p * 1.2,
-                "sales_modifier": lambda s, e: int(s * 1.25)
-            }
-        ]
-        market_event = random.choice(events)
-        
-        # Apply event effects
-        old_profit = profit
-        old_sales = estimated_sales
-        
-        # Apply sales modifier first (some events change sales)
-        estimated_sales = market_event["sales_modifier"](estimated_sales, efficiency)
-        
-        # Then recalculate profit with new sales and any profit modifiers
-        profit = market_event["modifier"](profit, estimated_sales, cost, best_match["Segment"])
-        
-        # Store the changes for display
-        market_event["profit_change"] = profit - old_profit
-        market_event["sales_change"] = estimated_sales - old_sales
-    
-    # Generate feedback based on profit
-    feedback = ""
-    if estimated_sales == 0:
-        feedback = "🚨 No sales! Your price is too high for the options you've chosen. Try lowering your price or better matching your car's features to a market segment."
-    elif profit < -5000000:
-        feedback = "🚨 Significant Loss! Your car is losing money. Try reducing production costs or increasing the price to better match the market."
-    elif profit < -1000000:
-        feedback = "⚠️ Loss! Consider adjusting your features or price to better appeal to your target market."
-    elif profit < -100000:
-        feedback = "🔴 Small Loss! You're close to breaking even. A few tweaks to features or price should get you into profitable territory."
-    elif profit < 0:
-        feedback = "Almost there! Small adjustments to price or features should make your car profitable."
-    elif profit < 20000:
-        feedback = "⚠️ Breaking Even! Your car is just covering costs. Minor adjustments could improve profitability."
-    elif profit < 100000:
-        feedback = "✅ Profitable! Your car is making money. Nice work!"
-    elif profit < 500000:
-        feedback = "🌟 Very Profitable! Great job balancing features and price for this market segment."
-    else:
-        feedback = "🏆 Extremely Profitable! Outstanding work creating an ideal car for the market!"
-    
-    return {
-        "Feedback": feedback,
-        "Best Market Segment": best_match["Segment"],
-        "Estimated Sales": estimated_sales,
-        "Profit": profit,
-        "Cost": cost,
-        "Market_Event": market_event
-    }
-
-# Function to generate feedback for a profit amount
-def get_feedback_for_profit(profit, sales=None):
-    if sales == 0 or sales is not None and sales < 10:
-        return "🚨 No sales! Your price is too high for the options you've chosen. Try lowering your price or better matching your car's features to a market segment."
-    
-    if profit < -5000000:
-        return "🚨 Significant Loss! Your car is losing money. Try reducing production costs or increasing the price to better match the market."
-    elif profit < -1000000:
-        return "⚠️ Loss! Consider adjusting your features or price to better appeal to your target market."
-    elif profit < -100000:
-        return "🔴 Small Loss! You're close to breaking even. A few tweaks to features or price should get you into profitable territory."
-    elif profit < 0:
-        return "Almost there! Small adjustments to price or features should make your car profitable."
-    elif profit < 20000:
-        return "⚠️ Breaking Even! Your car is just covering costs. Minor adjustments could improve profitability."
-    elif profit < 100000:
-        return "✅ Profitable! Your car is making money. Nice work!"
-    elif profit < 500000:
-        return "🌟 Very Profitable! Great job balancing features and price for this market segment."
-    else:
-        return "🏆 Extremely Profitable! Outstanding work creating an ideal car for the market!"
-
-# AI image generation function using OpenAI DALL·E
-def generate_car_image(speed, aesthetics, reliability, efficiency, tech, price):
-    try:
-        openai_api_key = os.getenv("OPENAI_API_KEY")
-        
-        if not openai_api_key:
-            return "Error: No API Key found."
-        
-        headers = {
-            "Authorization": f"Bearer {openai_api_key}",
-            "Content-Type": "application/json"
-        }
-        
-        # Improved car type determination that prioritizes speed for sports cars
-        car_type = "sports car"
-        if speed >= 8 and aesthetics >= 7:
-            car_type = "sports car"  # Force sports car if speed and aesthetics are high
-        elif price > 60000:
-            car_type = "luxury sedan"
-        elif price > 25000 and efficiency < 8:
-            car_type = "mid-range SUV"
-        elif price > 25000 and efficiency >= 8:
-            car_type = "eco-friendly SUV"
-        elif price > 20000 and efficiency >= 8:
-            car_type = "eco-friendly compact"
-        else:
-            car_type = "budget hatchback"
-            
-        aesthetics_desc = "plain and basic" if aesthetics <= 3 else "sleek and stylish" if aesthetics <= 7 else "wild and extravagant"
-        
-        # Enhanced prompt to strongly prevent text in images
-        prompt = f"A {car_type} with a {aesthetics_desc} design and funky color palette. The car should match its market segment: a high-performance sports car for extreme speed, a refined luxury sedan for premium comfort, a mid-range SUV for versatility, an eco-friendly SUV for sustainable family travel, an eco-friendly compact for maximum efficiency, or a budget hatchback for affordability. The car should be driving on a winding mountain road. The image should be comic/photorealistic. VERY IMPORTANT: DO NOT INCLUDE ANY TEXT, LETTERS, NUMBERS, WORDS, LABELS, WATERMARKS, LOGOS, OR SYMBOLS OF ANY KIND IN THE IMAGE."
-        
-        data = {
-            "model": "dall-e-3",
-            "prompt": prompt,
-            "size": "1024x1024",
-            "n": 1
-        }
-        
-        response = requests.post("https://api.openai.com/v1/images/generations", json=data, headers=headers)
-        
-        if response.status_code == 200:
-            return response.json()["data"][0]["url"]
-        else:
-            return f"Error: {response.status_code} - {response.text}"
-    except Exception as e:
-        return f"Error generating image: {str(e)}"
-st.markdown("""
-<style>        
-.custom-container, .custom-container-tariff, .instructions-container, .achievement-container, .market-event-container, .car-name-container {
-        padding: 10px;
-    }
-    .stButton button {
-        width: 100%;
-    }
-    .small-button {
-        max-width: 100%;
-    }
-}
-@media (min-width: 992px) {
-    .sidebar-placeholder {
-        display: block;
-        width: 100%;
-        height: 1px;
-    }
-    .results-container {
-        padding-left: 20px;
-    }
-}
-
-/* Animation for market events */
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.02); }
-    100% { transform: scale(1); }
-}
-</style>
-""", unsafe_allow_html=True)
+# Import modules
+from market_simulation import market_data, simulate_market_performance, get_feedback_for_profit
+from car_naming import generate_model_name, generate_tagline
+from achievements import check_achievements
+from image_generation import generate_car_image
+from styling import load_styles
 
 # Initialize session state
 if 'game_state' not in st.session_state:
@@ -448,6 +68,10 @@ def reset_game():
     st.session_state.car_names = []
     st.session_state.car_taglines = []
     # Note: we don't reset achievements when starting a new game
+
+# Load CSS
+load_styles()
+
 # Logo and header in the same row
 logo_path = "logo.png"  # Replace with the actual logo file path
 
@@ -665,10 +289,24 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
         disabled = st.session_state.game_state == "game_over"
         
         with st.container():
-            # Car naming system - ADDED FEATURE
+            # Car naming system
             st.markdown('<div class="car-name-container">', unsafe_allow_html=True)
             st.markdown('<h3 class="car-name-header">🚗 Name Your Car</h3>', unsafe_allow_html=True)
             
+            # Get values from UI first
+            speed = st.slider("Speed", 1, 10, default_speed, disabled=disabled, 
+                             help="Higher speed increases cost but appeals to Sports segment")
+            aesthetics = st.slider("Aesthetics", 1, 10, default_aesthetics, disabled=disabled,
+                                 help="Higher aesthetics increases cost but appeals to Luxury segment")
+            reliability = st.slider("Reliability", 1, 10, default_reliability, disabled=disabled,
+                                  help="Higher reliability increases cost but appeals to Budget segment")
+            efficiency = st.slider("Fuel Efficiency", 1, 10, default_efficiency, disabled=disabled,
+                                 help="Higher efficiency increases cost but appeals to Eco-Friendly segment")
+            tech = st.slider("Technology", 1, 10, default_tech, disabled=disabled,
+                           help="Higher tech increases cost but appeals to Luxury & Sports segments")
+            price = st.number_input("Price ($)", min_value=10000, max_value=200000, value=default_price, step=1000, disabled=disabled)
+            
+            # Now we can safely use these variables
             # Generate a suggested name based on features if user hasn't entered one yet
             predicted_segment = "Family"  # Default
             if speed >= 8 and aesthetics >= 7:
@@ -699,21 +337,6 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
             
             # Store the car name for use later
             st.session_state.car_name = car_name
-            
-            # Car design sliders
-            st.markdown('<div class="settings-panel">', unsafe_allow_html=True)
-            speed = st.slider("Speed", 1, 10, default_speed, disabled=disabled, 
-                             help="Higher speed increases cost but appeals to Sports segment")
-            aesthetics = st.slider("Aesthetics", 1, 10, default_aesthetics, disabled=disabled,
-                                 help="Higher aesthetics increases cost but appeals to Luxury segment")
-            reliability = st.slider("Reliability", 1, 10, default_reliability, disabled=disabled,
-                                  help="Higher reliability increases cost but appeals to Budget segment")
-            efficiency = st.slider("Fuel Efficiency", 1, 10, default_efficiency, disabled=disabled,
-                                 help="Higher efficiency increases cost but appeals to Eco-Friendly segment")
-            tech = st.slider("Technology", 1, 10, default_tech, disabled=disabled,
-                           help="Higher tech increases cost but appeals to Luxury & Sports segments")
-            price = st.number_input("Price ($)", min_value=10000, max_value=200000, value=default_price, step=1000, disabled=disabled)
-            st.markdown('</div>', unsafe_allow_html=True)
             
             # Simulate market button (only show during playing state)
             if st.session_state.game_state == "playing":
@@ -844,7 +467,8 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                 You've earned {earned} out of 8 possible achievements!
             </p>
             """, unsafe_allow_html=True)
-# Right column for results display
+            
+    # Right column for results display
     with main_col2:
         st.markdown('<div class="results-panel">', unsafe_allow_html=True)
         
@@ -921,7 +545,8 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                         <p style="font-style: italic; margin-top: 10px; text-align: center;">Market events occur randomly and can help or hinder your car's performance!</p>
                     </div>
                     """, unsafe_allow_html=True)
-# Display tariff information if it has been applied
+                
+                # Display tariff information if it has been applied
                 if st.session_state.tariff_applied:
                     tariffed_cost = st.session_state.result['Cost'] * 1.25  # Adding 25% tariff
                     latest_design = st.session_state.car_designs[-1]
@@ -1001,7 +626,8 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                     # Display the summary table
                     st.markdown("### All Attempts Comparison")
                     st.dataframe(summary_df, use_container_width=True)
-# Achievements earned summary
+                    
+                    # Achievements earned summary
                     earned_achievements = sum(1 for value in st.session_state.achievements.values() if value)
                     if earned_achievements > 0:
                         st.markdown(f"""
