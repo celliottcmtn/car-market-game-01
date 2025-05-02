@@ -20,6 +20,7 @@ display_header()
 
 # Show achievement notifications
 display_achievement_notifications(st.session_state.new_achievements)
+
 # Clear the notifications after displaying
 st.session_state.new_achievements = []
 
@@ -41,7 +42,6 @@ if st.session_state.game_state == "instructions":
         st.session_state.car_names = []
         st.session_state.car_taglines = []
         st.rerun()
-
     # Show achievements panel if user has earned any
     if st.session_state.total_achievements_earned > 0:
         with st.expander("📊 Your Achievements", expanded=False):
@@ -54,13 +54,17 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
     
     # Left column for car design controls
     with main_col1:
-        # Rest of the game UI components and logic
-        # ...
+        # Add car design controls here
+        display_car_design_controls()
         
     # Right column for results display
     with main_col2:
         # Results panel
-        # ...
+        display_results_panel()
+
+# Add summary display if needed
+if st.session_state.game_state == "game_over":
+    display_summary()
 
 if __name__ == "__main__":
     # This ensures the app runs correctly when executed directly
