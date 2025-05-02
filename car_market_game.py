@@ -5,7 +5,7 @@ import random
 
 # Import modules
 from market_simulation import market_data, simulate_market_performance, get_feedback_for_profit
-from car_naming import generate_model_name, generate_tagline
+from car_naming import generate_model_name, generate_tagline, generate_version_name
 from achievements import check_achievements
 from image_generation import generate_car_image
 from styling import load_styles
@@ -115,7 +115,7 @@ if st.session_state.game_state == "instructions":
             <li><strong>Objective:</strong> Design a profitable car by adjusting its features and price.</li>
             <li><strong>You have 3 attempts</strong> to create a profitable car design.</li>
             <li>Customize your car's specifications using the sliders.</li>
-            <li><strong style="color: #3F51B5;">Name your car</strong> and see what marketing tagline it gets!</li>
+            <li><strong style="color: #3F51B5;">See your car's name</strong> and marketing tagline based on its features!</li>
             <li>Click "Simulate Market" to see how your car performs.</li>
             <li>Learn from each attempt and adjust your strategy.</li>
             <li><strong style="color: #9C27B0;">Watch for Random Market Events!</strong> These happen frequently and can affect your profits.</li>
@@ -289,10 +289,6 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
         disabled = st.session_state.game_state == "game_over"
         
         with st.container():
-            # Car naming system
-            st.markdown('<div class="car-name-container">', unsafe_allow_html=True)
-            st.markdown('<h3 class="car-name-header">🚗 Name Your Car</h3>', unsafe_allow_html=True)
-            
             # Get values from UI first
             speed = st.slider("Speed", 1, 10, default_speed, disabled=disabled, 
                              help="Higher speed increases cost but appeals to Sports segment")
@@ -306,8 +302,11 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                            help="Higher tech increases cost but appeals to Luxury & Sports segments")
             price = st.number_input("Price ($)", min_value=10000, max_value=200000, value=default_price, step=1000, disabled=disabled)
             
-            # Now we can safely use these variables
-            # Generate a suggested name based on features if user hasn't entered one yet
+            # Car naming system - now automatic
+            st.markdown('<div class="car-name-container">', unsafe_allow_html=True)
+            st.markdown('<h3 class="car-name-header">🚗 Your Car Name</h3>', unsafe_allow_html=True)
+            
+            # Get car type based on features
             predicted_segment = "Family"  # Default
             if speed >= 8 and aesthetics >= 7:
                 predicted_segment = "Sports"
@@ -318,37 +317,33 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
             elif price < 25000:
                 predicted_segment = "Budget"
             
-            suggested_name = generate_model_name(predicted_segment, speed, aesthetics)
+            # Generate a name based on all features
+            generated_name = generate_model_name(predicted_segment, speed, aesthetics, reliability, efficiency, tech)
             
-            # Text input for car name with suggested name as default
-            car_name = st.text_input("Car Name", 
-                                    value=suggested_name if st.session_state.car_name == "" else st.session_state.car_name, 
-                                    max_chars=30, 
-                                    placeholder="Enter car name", 
-                                    disabled=disabled)
+            # Display the generated name
+            st.markdown(f'<h2 class="car-name-display">{generated_name}</h2>', unsafe_allow_html=True)
             
             # Preview the marketing tagline that will be generated
-            if not disabled and car_name:
+            if not disabled:
                 preview_tagline = generate_tagline(speed, aesthetics, reliability, efficiency, tech)
                 st.markdown(f'<p class="car-tagline">"{preview_tagline}"</p>', unsafe_allow_html=True)
-                st.markdown('<p style="text-align: center; font-size: 0.8em; margin-top: 5px;">Marketing tagline will be generated based on your car\'s features</p>', unsafe_allow_html=True)
+                st.markdown('<p style="text-align: center; font-size: 0.8em; margin-top: 5px;">Your car\'s name and marketing tagline are generated based on its features</p>', unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
             
-            # Store the car name for use later
-            st.session_state.car_name = car_name
+            # Store the generated name for use later
+            st.session_state.car_name = generated_name
             
             # Simulate market button (only show during playing state)
             if st.session_state.game_state == "playing":
                 sim_button = st.button("Simulate Market", type="primary")
                 if sim_button:
-                    if not car_name.strip():
-                        st.error("Please give your car a name before simulating!")
-                        st.stop()
-                        
                     with st.spinner("Simulating market performance..."):
                         # Reset tariff state when simulating new market
                         st.session_state.tariff_applied = False
+                        
+                        # Generate version name for this attempt
+                        versioned_name = generate_version_name(st.session_state.car_name, st.session_state.attempts_used + 1)
                         
                         # Generate tagline
                         tagline = generate_tagline(speed, aesthetics, reliability, efficiency, tech)
@@ -364,7 +359,7 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                         })
                         
                         # Store car name and tagline
-                        st.session_state.car_names.append(car_name)
+                        st.session_state.car_names.append(versioned_name)
                         st.session_state.car_taglines.append(tagline)
                         
                         # Simulate market
@@ -378,7 +373,7 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                             st.session_state.new_achievements = new_achievements
                             st.session_state.total_achievements_earned += len(new_achievements)
                         
-                        # Clear car name for next attempt
+                        # Clear car name for next attempt - we'll generate a new one based on the new settings
                         st.session_state.car_name = ""
                         
                         # Generate AI image only on final attempt
@@ -585,6 +580,8 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                     st.markdown(f"""
                     <div style="background-color: #e8f4f8; padding: 15px; border-radius: 10px; border: 2px solid #3498db; margin-bottom: 20px;">
                         <h3 style="color: #3498db; text-align: center;">🏆 Best Performing Design: {st.session_state.car_names[best_attempt_index]}</h3>
+                        <p style="text-align: center; font-style: italic; color: #3">
+                <h3 style="color: #3498db; text-align: center;">🏆 Best Performing Design: {st.session_state.car_names[best_attempt_index]}</h3>
                         <p style="text-align: center; font-style: italic; color: #3F51B5; margin-bottom: 15px;">"{st.session_state.car_taglines[best_attempt_index]}"</p>
                         <p><strong>Profit:</strong> ${best_attempt['Profit']:,}</p>
                         <p><strong>Market Segment:</strong> {best_attempt['Best Market Segment']}</p>
@@ -756,7 +753,7 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
             st.markdown("""
             <div style="text-align: center; padding: 30px; background-color: #f5f5f5; border-radius: 10px;">
                 <h3>Your results will appear here</h3>
-                <p>Adjust the car settings on the left, name your car, and click "Simulate Market" to see how your design performs.</p>
+                <p>Adjust the car settings on the left, see your automatically generated car name, and click "Simulate Market" to see how your design performs.</p>
                 <p style="margin-top: 15px; font-weight: bold; color: #9C27B0;">Watch for random market events that can affect your car's performance!</p>
                 <p style="font-weight: bold; color: #FFD700;">Earn achievements by reaching special milestones!</p>
             </div>
