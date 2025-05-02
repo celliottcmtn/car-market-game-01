@@ -358,6 +358,8 @@ def generate_car_image(speed, aesthetics, reliability, efficiency, tech, price):
             return f"Error: {response.status_code} - {response.text}"
     except Exception as e:
         return f"Error generating image: {str(e)}"
+st.markdown("""
+<style>        
 .custom-container, .custom-container-tariff, .instructions-container, .achievement-container, .market-event-container, .car-name-container {
         padding: 10px;
     }
