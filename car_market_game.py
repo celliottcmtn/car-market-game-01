@@ -3,6 +3,8 @@ import pandas as pd
 import requests
 import os
 import time
+from io import BytesIO
+from PIL import Image
 
 # Simulated market data
 market_data = pd.DataFrame({
@@ -82,13 +84,18 @@ def get_feedback_for_profit(profit, sales=None):
     else:
         return "Your car is profitable! Maintain a balance between cost and market demand for even better results."
 
-# AI image generation function using OpenAI DALL·E
+# AI image generation function using OpenAI DALL·E - IMPROVED ERROR HANDLING
 def generate_car_image(speed, aesthetics, reliability, efficiency, tech, price):
     try:
-        openai_api_key = os.getenv("OPENAI_API_KEY")
+        # Try to get API key from Streamlit secrets first, then environment variable
+        if hasattr(st, 'secrets') and 'openai_api_key' in st.secrets:
+            openai_api_key = st.secrets['openai_api_key']
+        else:
+            openai_api_key = os.getenv("OPENAI_API_KEY")
         
         if not openai_api_key:
-            return "Error: No API Key found."
+            print("No OpenAI API key found")
+            return "Error: No API Key found. Check Streamlit secrets or environment variables."
         
         headers = {
             "Authorization": f"Bearer {openai_api_key}",
@@ -105,13 +112,30 @@ def generate_car_image(speed, aesthetics, reliability, efficiency, tech, price):
             "n": 1
         }
         
+        # Log request data (without API key)
+        print("Sending request to OpenAI with model:", data["model"])
+        
         response = requests.post("https://api.openai.com/v1/images/generations", json=data, headers=headers)
         
+        # Log response status
+        print("Response status:", response.status_code)
+        
         if response.status_code == 200:
-            return response.json()["data"][0]["url"]
+            json_response = response.json()
+            print("API Response received successfully")
+            
+            if "data" in json_response and len(json_response["data"]) > 0 and "url" in json_response["data"][0]:
+                return json_response["data"][0]["url"]
+            else:
+                print("Unexpected response format:", json_response)
+                return f"Error: Unexpected response format from OpenAI API"
         else:
-            return f"Error: {response.status_code} - {response.text}"
+            print(f"API Error: {response.status_code} - {response.text}")
+            return f"Error: {response.status_code} - {response.text[:200]}..."
     except Exception as e:
+        import traceback
+        print("Exception in generate_car_image:", str(e))
+        print(traceback.format_exc())
         return f"Error generating image: {str(e)}"
 
 # Streamlit UI
@@ -356,6 +380,8 @@ if 'attempts_results' not in st.session_state:
     st.session_state.attempts_results = []
 if 'car_designs' not in st.session_state:
     st.session_state.car_designs = []
+if 'debug_info' not in st.session_state:
+    st.session_state.debug_info = []  # For storing debug information
 
 # Function to reset the game
 def reset_game():
@@ -366,6 +392,22 @@ def reset_game():
     st.session_state.attempts_used = 0
     st.session_state.attempts_results = []
     st.session_state.car_designs = []
+    st.session_state.debug_info = []
+
+# Function to download and cache images to avoid display issues
+def fetch_and_display_image(url):
+    try:
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            image = Image.open(BytesIO(response.content))
+            st.image(image, use_container_width=True)
+            return True
+        else:
+            st.error(f"Failed to load image: HTTP {response.status_code}")
+            return False
+    except Exception as e:
+        st.error(f"Error loading image: {str(e)}")
+        return False
 
 # Logo and header in the same row
 logo_path = "logo.png"  # Replace with the actual logo file path
@@ -505,7 +547,21 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                         
                         # Generate AI image only on final attempt
                         if st.session_state.attempts_used >= 3:
-                            st.session_state.car_image_url = generate_car_image(speed, aesthetics, reliability, efficiency, tech, price)
+                            st.session_state.debug_info.append("Generating final car image")
+                            try:
+                                with st.spinner("Generating your car image (this might take a moment)..."):
+                                    st.session_state.car_image_url = generate_car_image(speed, aesthetics, reliability, efficiency, tech, price)
+                                    st.session_state.debug_info.append(f"Generated URL: {st.session_state.car_image_url[:50]}...")
+                                    
+                                    # If we got an error back, use a fallback image
+                                    if "Error" in str(st.session_state.car_image_url):
+                                        st.session_state.debug_info.append(f"Error in image URL, using fallback")
+                                        car_type = "sports" if price > 80000 else "luxury" if price > 60000 else "suv" if price > 25000 else "compact"
+                                        st.session_state.car_image_url = f"https://placehold.co/600x400?text=Your+{car_type.capitalize()}+Car"
+                            except Exception as e:
+                                st.session_state.debug_info.append(f"Exception during image generation: {str(e)}")
+                                st.session_state.car_image_url = "https://placehold.co/600x400?text=Your+Custom+Car"
+                                
                             st.session_state.game_state = "game_over"
                         
                         st.rerun()
@@ -518,7 +574,7 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
         if st.session_state.result is not None:
             try:
                 # Display car image only on final attempt if available
-                if st.session_state.game_state == "game_over" and st.session_state.car_image_url and "Error" not in st.session_state.car_image_url:
+                if st.session_state.game_state == "game_over" and st.session_state.car_image_url:
                     try:
                         # Add attractive box about AI-generated image with better contrast
                         st.markdown("""
@@ -528,9 +584,20 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                         ✨ This image is uniquely generated by AI based on your chosen customization ✨
                         </div>
                         """, unsafe_allow_html=True)
-                        st.image(st.session_state.car_image_url, use_container_width=True)
-                    except:
-                        st.write("Unable to display car image")
+                        
+                        # Check if URL starts with http (actual image URL) or Error
+                        if st.session_state.car_image_url.startswith("http"):
+                            success = fetch_and_display_image(st.session_state.car_image_url)
+                            if not success:
+                                st.warning("Could not load the car image. Using a placeholder instead.")
+                                st.image("https://placehold.co/600x400?text=Your+Custom+Car", use_container_width=True)
+                        else:
+                            st.warning(f"Unable to generate car image. Using a placeholder instead.")
+                            st.image("https://placehold.co/600x400?text=Your+Custom+Car", use_container_width=True)
+                            
+                    except Exception as e:
+                        st.warning(f"Unable to display car image: {str(e)}")
+                        st.image("https://placehold.co/600x400?text=Your+Custom+Car", use_container_width=True)
                 
                 # Show attempts left or final status
                 if st.session_state.game_state == "playing":
@@ -548,125 +615,3 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                     <p><strong>Estimated Sales:</strong> {result['Estimated Sales']} units</p>
                     <p><strong>Estimated Profit:</strong> ${result['Profit']:,}</p>
                     <div class="section-divider">
-                        <h3 class="header-orange">💡 Profit Feedback</h3>
-                        <p>{result['Feedback']}</p>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # Display tariff information if it has been applied
-                if st.session_state.tariff_applied:
-                    tariffed_cost = st.session_state.result['Cost'] * 1.25  # Adding 25% tariff
-                    latest_design = st.session_state.car_designs[-1]
-                    tariffed_profit = st.session_state.result['Estimated Sales'] * (latest_design['Price'] - tariffed_cost)
-                    tariffed_feedback = get_feedback_for_profit(tariffed_profit, st.session_state.result['Estimated Sales'])
-                    
-                    st.markdown(f"""
-                    <div class="custom-container-tariff">
-                        <h2 class="header-orange">📊 Updated Market Results (After Tariff)</h2>
-                        <p><strong>Best Market Segment:</strong> {st.session_state.result['Best Market Segment']}</p>
-                        <p><strong>Estimated Sales:</strong> {st.session_state.result['Estimated Sales']} units</p>
-                        <p><strong>Original Profit:</strong> ${st.session_state.result['Profit']:,}</p>
-                        <p><strong>New Estimated Profit:</strong> ${tariffed_profit:,.2f}</p>
-                        <p><strong>Profit Change:</strong> ${tariffed_profit - st.session_state.result['Profit']:,.2f}</p>
-                        <div class="section-divider">
-                            <h3 class="header-orange">💡 Updated Profit Feedback</h3>
-                            <p>{tariffed_feedback}</p>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                # Game over summary at the end
-                if st.session_state.game_state == "game_over":
-                    # Calculate best attempt
-                    profits = [result['Profit'] for result in st.session_state.attempts_results]
-                    best_attempt_index = profits.index(max(profits))
-                    best_attempt = st.session_state.attempts_results[best_attempt_index]
-                    best_design = st.session_state.car_designs[best_attempt_index]
-                    
-                    st.markdown("""
-                    <div class="section-divider"></div>
-                    <h2 style="text-align: center; margin-top: 20px;">Game Summary</h2>
-                    """, unsafe_allow_html=True)
-                    
-                    # Best design callout
-                    st.markdown(f"""
-                    <div style="background-color: #e8f4f8; padding: 15px; border-radius: 10px; border: 2px solid #3498db; margin-bottom: 20px;">
-                        <h3 style="color: #3498db; text-align: center;">🏆 Best Performing Design: Attempt {best_attempt_index+1}</h3>
-                        <p><strong>Profit:</strong> ${best_attempt['Profit']:,}</p>
-                        <p><strong>Market Segment:</strong> {best_attempt['Best Market Segment']}</p>
-                        <p><strong>Settings:</strong> Speed: {best_design['Speed']}, Aesthetics: {best_design['Aesthetics']}, 
-                        Reliability: {best_design['Reliability']}, Efficiency: {best_design['Efficiency']}, 
-                        Tech: {best_design['Tech']}, Price: ${best_design['Price']:,}</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Create a DataFrame for the summary
-                    import pandas as pd
-                    summary_data = []
-                    for i, (design, result) in enumerate(zip(st.session_state.car_designs, st.session_state.attempts_results)):
-                        is_best = i == best_attempt_index
-                        best_badge = "🏆 " if is_best else ""
-                        summary_data.append({
-                            "Attempt": f"{best_badge}Attempt {i+1}",
-                            "Market Segment": result['Best Market Segment'],
-                            "Sales": result['Estimated Sales'],
-                            "Profit": f"${result['Profit']:,}",
-                            "Speed": design['Speed'],
-                            "Aesthetics": design['Aesthetics'],
-                            "Reliability": design['Reliability'],
-                            "Efficiency": design['Efficiency'],
-                            "Tech": design['Tech'],
-                            "Price": f"${design['Price']:,}"
-                        })
-                    
-                    summary_df = pd.DataFrame(summary_data)
-                    
-                    # Display the summary table
-                    st.markdown("### All Attempts Comparison")
-                    st.dataframe(summary_df, use_container_width=True)
-                    
-                    # Educational message about relevant courses
-                    st.markdown("""
-                    <div style="background-color: #e6f7ff; padding: 15px; border-radius: 10px; border: 2px solid #1890ff; margin: 20px 0;">
-                        <h3 style="color: #1890ff; margin-top: 0;">📚 Educational Note</h3>
-                        <p>Taking courses at Coast Mountain College such as <strong>Introduction to Marketing</strong> and <strong>Business Finance</strong> would help you understand markets and how to price products accordingly!</p>
-                        <p>Interested in more information? Visit the <a href="https://coastmountaincollege.ca/programs/study/business" target="_blank">Coast Mountain College Business Administration website</a></p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Tariff button after 3rd attempt if not already applied
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        if not st.session_state.tariff_applied:
-                            # Fix for tariff button disappearing
-                            tariff_button = st.button(
-                                "Impose Trump Tariff +25%", 
-                                key="apply_tariff",
-                                type="secondary"
-                            )
-                            if tariff_button:
-                                st.session_state.tariff_applied = True
-                                st.rerun()
-                                st.session_state.tariff_applied = True
-                                st.rerun()
-                    
-                    with col2:
-                        # New game button
-                        if st.button("Start New Game", key="new_game_button", type="primary"):
-                            reset_game()
-                            st.rerun()
-            
-            except Exception as e:
-                st.error(f"Error displaying results: {str(e)}")
-        
-        # Show a placeholder message if no results to display yet
-        else:
-            st.markdown("""
-            <div style="text-align: center; padding: 30px; background-color: #f5f5f5; border-radius: 10px;">
-                <h3>Your results will appear here</h3>
-                <p>Adjust the car settings on the left and click "Simulate Market" to see how your design performs.</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-        st.markdown('</div>', unsafe_allow_html=True)
