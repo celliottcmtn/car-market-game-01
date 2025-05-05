@@ -1,11 +1,4 @@
-<div class="section-divider">
-                        <h3 class="header-orange">💡 Profit Feedback</h3>
-                        <p>{result['Feedback']}</p>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-                
-                # Display tariff information if it has been applied
+# Display tariff information if it has been applied
                 if st.session_state.tariff_applied:
                     tariffed_cost = st.session_state.result['Cost'] * 1.25  # Adding 25% tariff
                     latest_design = st.session_state.car_designs[-1]
@@ -14,14 +7,14 @@
                     
                     st.markdown(f"""
                     <div class="custom-container-tariff">
-                        <h2 class="header-orange">📊 Updated Market Results (After Tariff)</h2>
+                        <h2 class="header-orange">Updated Market Results (After Tariff)</h2>
                         <p><strong>Best Market Segment:</strong> {st.session_state.result['Best Market Segment']}</p>
                         <p><strong>Estimated Sales:</strong> {st.session_state.result['Estimated Sales']} units</p>
                         <p><strong>Original Profit:</strong> ${st.session_state.result['Profit']:,}</p>
                         <p><strong>New Estimated Profit:</strong> ${tariffed_profit:,.2f}</p>
                         <p><strong>Profit Change:</strong> ${tariffed_profit - st.session_state.result['Profit']:,.2f}</p>
                         <div class="section-divider">
-                            <h3 class="header-orange">💡 Updated Profit Feedback</h3>
+                            <h3 class="header-orange">Updated Profit Feedback</h3>
                             <p>{tariffed_feedback}</p>
                         </div>
                     </div>
@@ -43,7 +36,7 @@
                     # Best design callout
                     st.markdown(f"""
                     <div style="background-color: #e8f4f8; padding: 15px; border-radius: 10px; border: 2px solid #3498db; margin-bottom: 20px;">
-                        <h3 style="color: #3498db; text-align: center;">🏆 Best Performing Design: Attempt {best_attempt_index+1}</h3>
+                        <h3 style="color: #3498db; text-align: center;">Best Performing Design: Attempt {best_attempt_index+1}</h3>
                         <p><strong>Profit:</strong> ${best_attempt['Profit']:,}</p>
                         <p><strong>Market Segment:</strong> {best_attempt['Best Market Segment']}</p>
                         <p><strong>Settings:</strong> Speed: {best_design['Speed']}, Aesthetics: {best_design['Aesthetics']}, 
@@ -57,7 +50,7 @@
                     summary_data = []
                     for i, (design, result) in enumerate(zip(st.session_state.car_designs, st.session_state.attempts_results)):
                         is_best = i == best_attempt_index
-                        best_badge = "🏆 " if is_best else ""
+                        best_badge = "Best " if is_best else ""
                         summary_data.append({
                             "Attempt": f"{best_badge}Attempt {i+1}",
                             "Market Segment": result['Best Market Segment'],
@@ -80,7 +73,7 @@
                     # Educational message about relevant courses
                     st.markdown("""
                     <div style="background-color: #e6f7ff; padding: 15px; border-radius: 10px; border: 2px solid #1890ff; margin: 20px 0;">
-                        <h3 style="color: #1890ff; margin-top: 0;">📚 Educational Note</h3>
+                        <h3 style="color: #1890ff; margin-top: 0;">Educational Note</h3>
                         <p>Taking courses at Coast Mountain College such as <strong>Introduction to Marketing</strong> and <strong>Business Finance</strong> would help you understand markets and how to price products accordingly!</p>
                         <p>Interested in more information? Visit the <a href="https://coastmountaincollege.ca/programs/study/business" target="_blank">Coast Mountain College Business Administration website</a></p>
                     </div>
