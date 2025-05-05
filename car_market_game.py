@@ -3,8 +3,6 @@ import pandas as pd
 import requests
 import os
 import time
-from io import BytesIO
-from PIL import Image
 
 # Simulated market data
 market_data = pd.DataFrame({
@@ -36,19 +34,19 @@ def simulate_market_performance(speed, aesthetics, reliability, efficiency, tech
     
     feedback = ""
     if estimated_sales == 0:
-        feedback = "No sales! Your price is too high for the options you've chosen. Try lowering your price or better matching your car's features to a market segment."
+        feedback = "🚨 No sales! Your price is too high for the options you've chosen. Try lowering your price or better matching your car's features to a market segment."
     elif profit < -10000000:
-        feedback = "Catastrophic Loss! Your car is losing an extreme amount of money. You need to **completely rethink** your strategy—reduce production costs, increase the price, and make sure your car matches the right market segment."
+        feedback = "🚨 Catastrophic Loss! Your car is losing an extreme amount of money. You need to **completely rethink** your strategy—reduce production costs, increase the price, and make sure your car matches the right market segment."
     elif profit < -1000000:
-        feedback = "Huge Loss! Your losses are very high. Consider making significant adjustments—lowering expensive features, improving efficiency, or adjusting pricing to better fit the market."
+        feedback = "⚠️ Huge Loss! Your losses are very high. Consider making significant adjustments—lowering expensive features, improving efficiency, or adjusting pricing to better fit the market."
     elif profit < -100000:
-        feedback = "Major Loss! Your car is losing a significant amount of money. You need to make drastic changes—consider lowering production costs, increasing the price, or improving the balance of features to appeal to buyers."
+        feedback = "🚨 Major Loss! Your car is losing a significant amount of money. You need to make drastic changes—consider lowering production costs, increasing the price, or improving the balance of features to appeal to buyers."
     elif profit < -50000:
-        feedback = "Moderate Loss! Your car is losing money. Try reducing unnecessary costs, adjusting the price, or making the car more appealing to its target market."
+        feedback = "🔴 Moderate Loss! Your car is losing money. Try reducing unnecessary costs, adjusting the price, or making the car more appealing to its target market."
     elif profit < 0:
         feedback = "Your car is losing money. Consider increasing the price or reducing costs by adjusting features like speed, aesthetics, or technology."
     elif profit < 20000:
-        feedback = "Low Profit! Your profit is minimal. Consider small adjustments to your price or features to make your car more appealing."
+        feedback = "⚠️ Low Profit! Your profit is minimal. Consider small adjustments to your price or features to make your car more appealing."
     elif profit < 50000:
         feedback = "Your profit is low. Try optimizing your price or enhancing the car's appeal to boost sales."
     else:
@@ -65,37 +63,32 @@ def simulate_market_performance(speed, aesthetics, reliability, efficiency, tech
 # Function to generate feedback for a profit amount
 def get_feedback_for_profit(profit, sales=None):
     if sales == 0 or sales is not None and sales < 10:
-        return "No sales! Your price is too high for the options you've chosen. Try lowering your price or better matching your car's features to a market segment."
+        return "🚨 No sales! Your price is too high for the options you've chosen. Try lowering your price or better matching your car's features to a market segment."
     
     if profit < -10000000:
-        return "Catastrophic Loss! Your car is losing an extreme amount of money. You need to **completely rethink** your strategy—reduce production costs, increase the price, and make sure your car matches the right market segment."
+        return "🚨 Catastrophic Loss! Your car is losing an extreme amount of money. You need to **completely rethink** your strategy—reduce production costs, increase the price, and make sure your car matches the right market segment."
     elif profit < -1000000:
-        return "Huge Loss! Your losses are very high. Consider making significant adjustments—lowering expensive features, improving efficiency, or adjusting pricing to better fit the market."
+        return "⚠️ Huge Loss! Your losses are very high. Consider making significant adjustments—lowering expensive features, improving efficiency, or adjusting pricing to better fit the market."
     elif profit < -100000:
-        return "Major Loss! Your car is losing a significant amount of money. You need to make drastic changes—consider lowering production costs, increasing the price, or improving the balance of features to appeal to buyers."
+        return "🚨 Major Loss! Your car is losing a significant amount of money. You need to make drastic changes—consider lowering production costs, increasing the price, or improving the balance of features to appeal to buyers."
     elif profit < -50000:
-        return "Moderate Loss! Your car is losing money. Try reducing unnecessary costs, adjusting the price, or making the car more appealing to its target market."
+        return "🔴 Moderate Loss! Your car is losing money. Try reducing unnecessary costs, adjusting the price, or making the car more appealing to its target market."
     elif profit < 0:
         return "Your car is losing money. Consider increasing the price or reducing costs by adjusting features like speed, aesthetics, or technology."
     elif profit < 20000:
-        return "Low Profit! Your profit is minimal. Consider small adjustments to your price or features to make your car more appealing."
+        return "⚠️ Low Profit! Your profit is minimal. Consider small adjustments to your price or features to make your car more appealing."
     elif profit < 50000:
         return "Your profit is low. Try optimizing your price or enhancing the car's appeal to boost sales."
     else:
         return "Your car is profitable! Maintain a balance between cost and market demand for even better results."
 
-# AI image generation function using OpenAI DALL·E - IMPROVED ERROR HANDLING
+# AI image generation function using OpenAI DALL·E
 def generate_car_image(speed, aesthetics, reliability, efficiency, tech, price):
     try:
-        # Try to get API key from Streamlit secrets first, then environment variable
-        if hasattr(st, 'secrets') and 'openai_api_key' in st.secrets:
-            openai_api_key = st.secrets['openai_api_key']
-        else:
-            openai_api_key = os.getenv("OPENAI_API_KEY")
+        openai_api_key = os.getenv("OPENAI_API_KEY")
         
         if not openai_api_key:
-            print("No OpenAI API key found")
-            return "Error: No API Key found. Check Streamlit secrets or environment variables."
+            return "Error: No API Key found."
         
         headers = {
             "Authorization": f"Bearer {openai_api_key}",
@@ -112,30 +105,13 @@ def generate_car_image(speed, aesthetics, reliability, efficiency, tech, price):
             "n": 1
         }
         
-        # Log request data (without API key)
-        print("Sending request to OpenAI with model:", data["model"])
-        
         response = requests.post("https://api.openai.com/v1/images/generations", json=data, headers=headers)
         
-        # Log response status
-        print("Response status:", response.status_code)
-        
         if response.status_code == 200:
-            json_response = response.json()
-            print("API Response received successfully")
-            
-            if "data" in json_response and len(json_response["data"]) > 0 and "url" in json_response["data"][0]:
-                return json_response["data"][0]["url"]
-            else:
-                print("Unexpected response format:", json_response)
-                return f"Error: Unexpected response format from OpenAI API"
+            return response.json()["data"][0]["url"]
         else:
-            print(f"API Error: {response.status_code} - {response.text}")
-            return f"Error: {response.status_code} - {response.text[:200]}..."
+            return f"Error: {response.status_code} - {response.text}"
     except Exception as e:
-        import traceback
-        print("Exception in generate_car_image:", str(e))
-        print(traceback.format_exc())
         return f"Error generating image: {str(e)}"
 
 # Streamlit UI
@@ -380,8 +356,6 @@ if 'attempts_results' not in st.session_state:
     st.session_state.attempts_results = []
 if 'car_designs' not in st.session_state:
     st.session_state.car_designs = []
-if 'debug_info' not in st.session_state:
-    st.session_state.debug_info = []  # For storing debug information
 
 # Function to reset the game
 def reset_game():
@@ -392,22 +366,6 @@ def reset_game():
     st.session_state.attempts_used = 0
     st.session_state.attempts_results = []
     st.session_state.car_designs = []
-    st.session_state.debug_info = []
-
-# Function to download and cache images to avoid display issues
-def fetch_and_display_image(url):
-    try:
-        response = requests.get(url, timeout=10)
-        if response.status_code == 200:
-            image = Image.open(BytesIO(response.content))
-            st.image(image, use_container_width=True)
-            return True
-        else:
-            st.error(f"Failed to load image: HTTP {response.status_code}")
-            return False
-    except Exception as e:
-        st.error(f"Error loading image: {str(e)}")
-        return False
 
 # Logo and header in the same row
 logo_path = "logo.png"  # Replace with the actual logo file path
@@ -547,21 +505,7 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                         
                         # Generate AI image only on final attempt
                         if st.session_state.attempts_used >= 3:
-                            st.session_state.debug_info.append("Generating final car image")
-                            try:
-                                with st.spinner("Generating your car image (this might take a moment)..."):
-                                    st.session_state.car_image_url = generate_car_image(speed, aesthetics, reliability, efficiency, tech, price)
-                                    st.session_state.debug_info.append(f"Generated URL: {st.session_state.car_image_url[:50]}...")
-                                    
-                                    # If we got an error back, use a fallback image
-                                    if "Error" in str(st.session_state.car_image_url):
-                                        st.session_state.debug_info.append(f"Error in image URL, using fallback")
-                                        car_type = "sports" if price > 80000 else "luxury" if price > 60000 else "suv" if price > 25000 else "compact"
-                                        st.session_state.car_image_url = f"https://placehold.co/600x400?text=Your+{car_type.capitalize()}+Car"
-                            except Exception as e:
-                                st.session_state.debug_info.append(f"Exception during image generation: {str(e)}")
-                                st.session_state.car_image_url = "https://placehold.co/600x400?text=Your+Custom+Car"
-                                
+                            st.session_state.car_image_url = generate_car_image(speed, aesthetics, reliability, efficiency, tech, price)
                             st.session_state.game_state = "game_over"
                         
                         st.rerun()
@@ -574,30 +518,19 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
         if st.session_state.result is not None:
             try:
                 # Display car image only on final attempt if available
-                if st.session_state.game_state == "game_over" and st.session_state.car_image_url:
+                if st.session_state.game_state == "game_over" and st.session_state.car_image_url and "Error" not in st.session_state.car_image_url:
                     try:
                         # Add attractive box about AI-generated image with better contrast
                         st.markdown("""
                         <div style="background-color: #3498db; color: white; padding: 12px; 
                         border-radius: 5px; text-align: center; margin-bottom: 10px; font-weight: bold;
                         box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                        This image is uniquely generated by AI based on your chosen customization
+                        ✨ This image is uniquely generated by AI based on your chosen customization ✨
                         </div>
                         """, unsafe_allow_html=True)
-                        
-                        # Check if URL starts with http (actual image URL) or Error
-                        if st.session_state.car_image_url.startswith("http"):
-                            success = fetch_and_display_image(st.session_state.car_image_url)
-                            if not success:
-                                st.warning("Could not load the car image. Using a placeholder instead.")
-                                st.image("https://placehold.co/600x400?text=Your+Custom+Car", use_container_width=True)
-                        else:
-                            st.warning(f"Unable to generate car image. Using a placeholder instead.")
-                            st.image("https://placehold.co/600x400?text=Your+Custom+Car", use_container_width=True)
-                            
-                    except Exception as e:
-                        st.warning(f"Unable to display car image: {str(e)}")
-                        st.image("https://placehold.co/600x400?text=Your+Custom+Car", use_container_width=True)
+                        st.image(st.session_state.car_image_url, use_container_width=True)
+                    except:
+                        st.write("Unable to display car image")
                 
                 # Show attempts left or final status
                 if st.session_state.game_state == "playing":
@@ -610,15 +543,15 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                 result = st.session_state.result
                 st.markdown(f"""
                 <div class="custom-container">
-                    <h2 class="header-green">Market Simulation Results</h2>
+                    <h2 class="header-green">📊 Market Simulation Results</h2>
                     <p><strong>Best Market Segment:</strong> {result['Best Market Segment']}</p>
                     <p><strong>Estimated Sales:</strong> {result['Estimated Sales']} units</p>
                     <p><strong>Estimated Profit:</strong> ${result['Profit']:,}</p>
                     <div class="section-divider">
-                        <h3 class="header-orange">Profit Feedback</h3>
+                        <h3 class="header-orange">💡 Profit Feedback</h3>
                         <p>{result['Feedback']}</p>
                     </div>
-              </div>
+                </div>
                 """, unsafe_allow_html=True)
                 
                 # Display tariff information if it has been applied
@@ -630,14 +563,14 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                     
                     st.markdown(f"""
                     <div class="custom-container-tariff">
-                        <h2 class="header-orange">Updated Market Results (After Tariff)</h2>
+                        <h2 class="header-orange">📊 Updated Market Results (After Tariff)</h2>
                         <p><strong>Best Market Segment:</strong> {st.session_state.result['Best Market Segment']}</p>
                         <p><strong>Estimated Sales:</strong> {st.session_state.result['Estimated Sales']} units</p>
                         <p><strong>Original Profit:</strong> ${st.session_state.result['Profit']:,}</p>
                         <p><strong>New Estimated Profit:</strong> ${tariffed_profit:,.2f}</p>
                         <p><strong>Profit Change:</strong> ${tariffed_profit - st.session_state.result['Profit']:,.2f}</p>
                         <div class="section-divider">
-                            <h3 class="header-orange">Updated Profit Feedback</h3>
+                            <h3 class="header-orange">💡 Updated Profit Feedback</h3>
                             <p>{tariffed_feedback}</p>
                         </div>
                     </div>
@@ -659,7 +592,7 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                     # Best design callout
                     st.markdown(f"""
                     <div style="background-color: #e8f4f8; padding: 15px; border-radius: 10px; border: 2px solid #3498db; margin-bottom: 20px;">
-                        <h3 style="color: #3498db; text-align: center;">Best Performing Design: Attempt {best_attempt_index+1}</h3>
+                        <h3 style="color: #3498db; text-align: center;">🏆 Best Performing Design: Attempt {best_attempt_index+1}</h3>
                         <p><strong>Profit:</strong> ${best_attempt['Profit']:,}</p>
                         <p><strong>Market Segment:</strong> {best_attempt['Best Market Segment']}</p>
                         <p><strong>Settings:</strong> Speed: {best_design['Speed']}, Aesthetics: {best_design['Aesthetics']}, 
@@ -673,7 +606,7 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                     summary_data = []
                     for i, (design, result) in enumerate(zip(st.session_state.car_designs, st.session_state.attempts_results)):
                         is_best = i == best_attempt_index
-                        best_badge = "Best " if is_best else ""
+                        best_badge = "🏆 " if is_best else ""
                         summary_data.append({
                             "Attempt": f"{best_badge}Attempt {i+1}",
                             "Market Segment": result['Best Market Segment'],
@@ -696,7 +629,7 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                     # Educational message about relevant courses
                     st.markdown("""
                     <div style="background-color: #e6f7ff; padding: 15px; border-radius: 10px; border: 2px solid #1890ff; margin: 20px 0;">
-                        <h3 style="color: #1890ff; margin-top: 0;">Educational Note</h3>
+                        <h3 style="color: #1890ff; margin-top: 0;">📚 Educational Note</h3>
                         <p>Taking courses at Coast Mountain College such as <strong>Introduction to Marketing</strong> and <strong>Business Finance</strong> would help you understand markets and how to price products accordingly!</p>
                         <p>Interested in more information? Visit the <a href="https://coastmountaincollege.ca/programs/study/business" target="_blank">Coast Mountain College Business Administration website</a></p>
                     </div>
@@ -715,6 +648,8 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                             if tariff_button:
                                 st.session_state.tariff_applied = True
                                 st.rerun()
+                                st.session_state.tariff_applied = True
+                                st.rerun()
                     
                     with col2:
                         # New game button
@@ -724,13 +659,6 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
             
             except Exception as e:
                 st.error(f"Error displaying results: {str(e)}")
-                # Add a debug expander
-                with st.expander("Debug Information"):
-                    st.write("Debug Info:", st.session_state.debug_info)
-                    st.write("Error:", str(e))
-                    st.write("Error Type:", type(e).__name__)
-                    import traceback
-                    st.write("Traceback:", traceback.format_exc())
         
         # Show a placeholder message if no results to display yet
         else:
@@ -742,29 +670,3 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
             """, unsafe_allow_html=True)
             
         st.markdown('</div>', unsafe_allow_html=True)
-
-# Add a hidden debug expander at the bottom for developer troubleshooting
-with st.expander("Developer Debug", expanded=False):
-    st.write("### Debug Information")
-    st.write("Game State:", st.session_state.game_state)
-    st.write("Attempts Used:", st.session_state.attempts_used)
-    st.write("Debug Log:", st.session_state.debug_info)
-    
-    # API Key status check
-    if hasattr(st, 'secrets') and 'openai_api_key' in st.secrets:
-        st.write("API Key in Secrets: Yes")
-    else:
-        st.write("API Key in Secrets: No")
-        
-    if os.getenv("OPENAI_API_KEY"):
-        st.write("API Key in Environment: Yes")
-    else:
-        st.write("API Key in Environment: No")
-    
-    # Check Car Image URL
-    if st.session_state.car_image_url:
-        st.write("Car Image URL:", st.session_state.car_image_url[:50] + "..." if len(st.session_state.car_image_url) > 50 else st.session_state.car_image_url)
-    
-    # Add a manual refresh button for debugging
-    if st.button("Manual Refresh", key="debug_refresh"):
-        st.rerun()
