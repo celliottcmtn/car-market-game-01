@@ -621,6 +621,38 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                     tariffed_feedback = get_feedback_for_profit(tariffed_profit, st.session_state.result['Estimated Sales'])
                     
                     st.markdown(f"""
+                    <div class="custom-container-tariff">
+                        <h2 class="header-orange">Updated Market Results (After Tariff)</h2>
+                        <p><strong>Best Market Segment:</strong> {st.session_state.result['Best Market Segment']}</p>
+                        <p><strong>Estimated Sales:</strong> {st.session_state.result['Estimated Sales']} units</p>
+                        <p><strong>Original Profit:</strong> ${st.session_state.result['Profit']:,}</p>
+                        <p><strong>New Estimated Profit:</strong> ${tariffed_profit:,.2f}</p>
+                        <p><strong>Profit Change:</strong> ${tariffed_profit - st.session_state.result['Profit']:,.2f}</p>
+                        <div class="section-divider">
+                            <h3 class="header-orange">Updated Profit Feedback</h3>
+                            <p>{tariffed_feedback}</p>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+            except Exception as e:
+                st.error(f"Error displaying results: {str(e)}")
+                
+            # Game over summary at the end
+            try:
+                if st.session_state.game_state == "game_over":
+                    # Calculate best attempt
+                    profits = [result['Profit'] for result in st.session_state.attempts_results]
+                    best_attempt_index = profits.index(max(profits))
+                    best_attempt = st.session_state.attempts_results[best_attempt_index]
+                    best_design = st.session_state.car_designs[best_attempt_index]
+                    
+                    st.markdown("""
+                    <div class="section-divider"></div>
+                    <h2 style="text-align: center; margin-top: 20px;">Game Summary</h2>
+                    """, unsafe_allow_html=True)
+                    
+                    # Best design callout
+                    st.markdown(f"""
                     <div style="background-color: #e8f4f8; padding: 15px; border-radius: 10px; border: 2px solid #3498db; margin-bottom: 20px;">
                         <h3 style="color: #3498db; text-align: center;">Best Performing Design: Attempt {best_attempt_index+1}</h3>
                         <p><strong>Profit:</strong> ${best_attempt['Profit']:,}</p>
@@ -696,35 +728,3 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
             """, unsafe_allow_html=True)
             
         st.markdown('</div>', unsafe_allow_html=True)
-                    <div class="custom-container-tariff">
-                        <h2 class="header-orange">Updated Market Results (After Tariff)</h2>
-                        <p><strong>Best Market Segment:</strong> {st.session_state.result['Best Market Segment']}</p>
-                        <p><strong>Estimated Sales:</strong> {st.session_state.result['Estimated Sales']} units</p>
-                        <p><strong>Original Profit:</strong> ${st.session_state.result['Profit']:,}</p>
-                        <p><strong>New Estimated Profit:</strong> ${tariffed_profit:,.2f}</p>
-                        <p><strong>Profit Change:</strong> ${tariffed_profit - st.session_state.result['Profit']:,.2f}</p>
-                        <div class="section-divider">
-                            <h3 class="header-orange">Updated Profit Feedback</h3>
-                            <p>{tariffed_feedback}</p>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-            except Exception as e:
-                st.error(f"Error displaying results: {str(e)}")
-                
-            # Game over summary at the end
-            try:
-                if st.session_state.game_state == "game_over":
-                    # Calculate best attempt
-                    profits = [result['Profit'] for result in st.session_state.attempts_results]
-                    best_attempt_index = profits.index(max(profits))
-                    best_attempt = st.session_state.attempts_results[best_attempt_index]
-                    best_design = st.session_state.car_designs[best_attempt_index]
-                    
-                    st.markdown("""
-                    <div class="section-divider"></div>
-                    <h2 style="text-align: center; margin-top: 20px;">Game Summary</h2>
-                    """, unsafe_allow_html=True)
-                    
-                    # Best design callout
-                    st.markdown(f"""
