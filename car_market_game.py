@@ -590,63 +590,135 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                     st.warning(f"Unable to display car image: {str(e)}")
                     st.image("https://placehold.co/600x400?text=Your+Custom+Car", width=600)
             
-            try:
-                # Show attempts left or final status
-                if st.session_state.game_state == "playing":
-                    attempts_left = 3 - st.session_state.attempts_used
-                    st.markdown(f"<div class='attempt-counter'>You have {attempts_left} attempt{'s' if attempts_left != 1 else ''} left</div>", unsafe_allow_html=True)
-                else:
-                    st.markdown("<div class='attempt-counter'>Final Result</div>", unsafe_allow_html=True)
+            # Show attempts left or final status
+            if st.session_state.game_state == "playing":
+                attempts_left = 3 - st.session_state.attempts_used
+                st.markdown(f"<div class='attempt-counter'>You have {attempts_left} attempt{'s' if attempts_left != 1 else ''} left</div>", unsafe_allow_html=True)
+            else:
+                st.markdown("<div class='attempt-counter'>Final Result</div>", unsafe_allow_html=True)
+            
+            # Display results
+            result = st.session_state.result
+            st.markdown(f"""
+            <div class="custom-container">
+                <h2 class="header-green">Market Simulation Results</h2>
+                <p><strong>Best Market Segment:</strong> {result['Best Market Segment']}</p>
+                <p><strong>Estimated Sales:</strong> {result['Estimated Sales']} units</p>
+                <p><strong>Estimated Profit:</strong> ${result['Profit']:,}</p>
+                <div class="section-divider">
+                    <h3 class="header-orange">Profit Feedback</h3>
+                    <p>{result['Feedback']}</p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Display tariff information if it has been applied
+            if st.session_state.tariff_applied:
+                tariffed_cost = st.session_state.result['Cost'] * 1.25  # Adding 25% tariff
+                latest_design = st.session_state.car_designs[-1]
+                tariffed_profit = st.session_state.result['Estimated Sales'] * (latest_design['Price'] - tariffed_cost)
+                tariffed_feedback = get_feedback_for_profit(tariffed_profit, st.session_state.result['Estimated Sales'])
                 
-                # Display results
-                result = st.session_state.result
                 st.markdown(f"""
-                <div class="custom-container">
-                    <h2 class="header-green">Market Simulation Results</h2>
-                    <p><strong>Best Market Segment:</strong> {result['Best Market Segment']}</p>
-                    <p><strong>Estimated Sales:</strong> {result['Estimated Sales']} units</p>
-                    <p><strong>Estimated Profit:</strong> ${result['Profit']:,}</p>
+                <div class="custom-container-tariff">
+                    <h2 class="header-orange">Updated Market Results (After Tariff)</h2>
+                    <p><strong>Best Market Segment:</strong> {st.session_state.result['Best Market Segment']}</p>
+                    <p><strong>Estimated Sales:</strong> {st.session_state.result['Estimated Sales']} units</p>
+                    <p><strong>Original Profit:</strong> ${st.session_state.result['Profit']:,}</p>
+                    <p><strong>New Estimated Profit:</strong> ${tariffed_profit:,.2f}</p>
+                    <p><strong>Profit Change:</strong> ${tariffed_profit - st.session_state.result['Profit']:,.2f}</p>
                     <div class="section-divider">
-                        <h3 class="header-orange">Profit Feedback</h3>
-                        <p>{result['Feedback']}</p>
+                        <h3 class="header-orange">Updated Profit Feedback</h3>
+                        <p>{tariffed_feedback}</p>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
-                
-                # Display tariff information if it has been applied
-                if st.session_state.tariff_applied:
-                    tariffed_cost = st.session_state.result['Cost'] * 1.25  # Adding 25% tariff
-                    latest_design = st.session_state.car_designs[-1]
-                    tariffed_profit = st.session_state.result['Estimated Sales'] * (latest_design['Price'] - tariffed_cost)
-                    tariffed_feedback = get_feedback_for_profit(tariffed_profit, st.session_state.result['Estimated Sales'])
-                    
-                    st.markdown(f"""
-                    <div class="custom-container-tariff">
-                        <h2 class="header-orange">Updated Market Results (After Tariff)</h2>
-                        <p><strong>Best Market Segment:</strong> {st.session_state.result['Best Market Segment']}</p>
-                        <p><strong>Estimated Sales:</strong> {st.session_state.result['Estimated Sales']} units</p>
-                        <p><strong>Original Profit:</strong> ${st.session_state.result['Profit']:,}</p>
-                        <p><strong>New Estimated Profit:</strong> ${tariffed_profit:,.2f}</p>
-                        <p><strong>Profit Change:</strong> ${tariffed_profit - st.session_state.result['Profit']:,.2f}</p>
-                        <div class="section-divider">
-                            <h3 class="header-orange">Updated Profit Feedback</h3>
-                            <p>{tariffed_feedback}</p>
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-            except Exception as e:
-                st.error(f"Error displaying results: {str(e)}")
-                
+            
             # Game over summary at the end
-            try:
-                if st.session_state.game_state == "game_over":
-                    # Calculate best attempt
-                    profits = [result['Profit'] for result in st.session_state.attempts_results]
-                    best_attempt_index = profits.index(max(profits))
-                    best_attempt = st.session_state.attempts_results[best_attempt_index]
-                    best_design = st.session_state.car_designs[best_attempt_index]
-                    
-                    st.markdown("""
-                    <div class="section-divider"></div>
-                    <h2 style="text-align: center; margin-top: 20px;">Game Summary</h2>
-                    """, unsafe_allow_html=True)
+            if st.session_state.game_state == "game_over":
+                # Calculate best attempt
+                profits = [result['Profit'] for result in st.session_state.attempts_results]
+                best_attempt_index = profits.index(max(profits))
+                best_attempt = st.session_state.attempts_results[best_attempt_index]
+                best_design = st.session_state.car_designs[best_attempt_index]
+                
+                st.markdown("""
+                <div class="section-divider"></div>
+                <h2 style="text-align: center; margin-top: 20px;">Game Summary</h2>
+                """, unsafe_allow_html=True)
+                
+                # Best design callout
+                st.markdown(f"""
+                <div style="background-color: #e8f4f8; padding: 15px; border-radius: 10px; border: 2px solid #3498db; margin-bottom: 20px;">
+                    <h3 style="color: #3498db; text-align: center;">Best Performing Design: Attempt {best_attempt_index+1}</h3>
+                    <p><strong>Profit:</strong> ${best_attempt['Profit']:,}</p>
+                    <p><strong>Market Segment:</strong> {best_attempt['Best Market Segment']}</p>
+                    <p><strong>Settings:</strong> Speed: {best_design['Speed']}, Aesthetics: {best_design['Aesthetics']}, 
+                    Reliability: {best_design['Reliability']}, Efficiency: {best_design['Efficiency']}, 
+                    Tech: {best_design['Tech']}, Price: ${best_design['Price']:,}</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Create a DataFrame for the summary
+                import pandas as pd
+                summary_data = []
+                for i, (design, result) in enumerate(zip(st.session_state.car_designs, st.session_state.attempts_results)):
+                    is_best = i == best_attempt_index
+                    best_badge = "Best " if is_best else ""
+                    summary_data.append({
+                        "Attempt": f"{best_badge}Attempt {i+1}",
+                        "Market Segment": result['Best Market Segment'],
+                        "Sales": result['Estimated Sales'],
+                        "Profit": f"${result['Profit']:,}",
+                        "Speed": design['Speed'],
+                        "Aesthetics": design['Aesthetics'],
+                        "Reliability": design['Reliability'],
+                        "Efficiency": design['Efficiency'],
+                        "Tech": design['Tech'],
+                        "Price": f"${design['Price']:,}"
+                    })
+                
+                summary_df = pd.DataFrame(summary_data)
+                
+                # Display the summary table
+                st.markdown("### All Attempts Comparison")
+                st.dataframe(summary_df, use_container_width=True)
+                
+                # Educational message about relevant courses
+                st.markdown("""
+                <div style="background-color: #e6f7ff; padding: 15px; border-radius: 10px; border: 2px solid #1890ff; margin: 20px 0;">
+                    <h3 style="color: #1890ff; margin-top: 0;">Educational Note</h3>
+                    <p>Taking courses at Coast Mountain College such as <strong>Introduction to Marketing</strong> and <strong>Business Finance</strong> would help you understand markets and how to price products accordingly!</p>
+                    <p>Interested in more information? Visit the <a href="https://coastmountaincollege.ca/programs/study/business" target="_blank">Coast Mountain College Business Administration website</a></p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Tariff button after 3rd attempt if not already applied
+                col1, col2 = st.columns(2)
+                with col1:
+                    if not st.session_state.tariff_applied:
+                        # Fix for tariff button disappearing
+                        if st.button(
+                            "Impose Trump Tariff +25%", 
+                            key="apply_tariff",
+                            type="secondary"
+                        ):
+                            st.session_state.tariff_applied = True
+                            st.rerun()
+                
+                with col2:
+                    # New game button
+                    if st.button("Start New Game", key="new_game_button", type="primary"):
+                        reset_game()
+                        st.rerun()
+                        
+        # Show a placeholder message if no results to display yet
+        else:
+            st.markdown("""
+            <div style="text-align: center; padding: 30px; background-color: #f5f5f5; border-radius: 10px;">
+                <h3>Your results will appear here</h3>
+                <p>Adjust the car settings on the left and click "Simulate Market" to see how your design performs.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        st.markdown('</div>', unsafe_allow_html=True)
