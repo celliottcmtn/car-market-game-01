@@ -451,7 +451,7 @@ if st.session_state.game_state == "instructions":
             st.session_state.attempts_used = 0
             st.session_state.attempts_results = []
             st.session_state.car_designs = []
-            st.experimental_rerun()
+            st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
 # Playing the game or game over state
@@ -556,7 +556,7 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                                 
                             st.session_state.game_state = "game_over"
                             
-                        st.experimental_rerun()
+                        st.rerun()
     
     # Right column for results display
     with main_col2:
@@ -650,81 +650,3 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                     <div class="section-divider"></div>
                     <h2 style="text-align: center; margin-top: 20px;">Game Summary</h2>
                     """, unsafe_allow_html=True)
-                    
-                    # Best design callout
-                    st.markdown(f"""
-                    <div style="background-color: #e8f4f8; padding: 15px; border-radius: 10px; border: 2px solid #3498db; margin-bottom: 20px;">
-                        <h3 style="color: #3498db; text-align: center;">Best Performing Design: Attempt {best_attempt_index+1}</h3>
-                        <p><strong>Profit:</strong> ${best_attempt['Profit']:,}</p>
-                        <p><strong>Market Segment:</strong> {best_attempt['Best Market Segment']}</p>
-                        <p><strong>Settings:</strong> Speed: {best_design['Speed']}, Aesthetics: {best_design['Aesthetics']}, 
-                        Reliability: {best_design['Reliability']}, Efficiency: {best_design['Efficiency']}, 
-                        Tech: {best_design['Tech']}, Price: ${best_design['Price']:,}</p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Create a DataFrame for the summary
-                    import pandas as pd
-                    summary_data = []
-                    for i, (design, result) in enumerate(zip(st.session_state.car_designs, st.session_state.attempts_results)):
-                        is_best = i == best_attempt_index
-                        best_badge = "Best " if is_best else ""
-                        summary_data.append({
-                            "Attempt": f"{best_badge}Attempt {i+1}",
-                            "Market Segment": result['Best Market Segment'],
-                            "Sales": result['Estimated Sales'],
-                            "Profit": f"${result['Profit']:,}",
-                            "Speed": design['Speed'],
-                            "Aesthetics": design['Aesthetics'],
-                            "Reliability": design['Reliability'],
-                            "Efficiency": design['Efficiency'],
-                            "Tech": design['Tech'],
-                            "Price": f"${design['Price']:,}"
-                        })
-                    
-                    summary_df = pd.DataFrame(summary_data)
-                    
-                    # Display the summary table
-                    st.markdown("### All Attempts Comparison")
-                    st.dataframe(summary_df, use_container_width=True)
-                    
-                    # Educational message about relevant courses
-                    st.markdown("""
-                    <div style="background-color: #e6f7ff; padding: 15px; border-radius: 10px; border: 2px solid #1890ff; margin: 20px 0;">
-                        <h3 style="color: #1890ff; margin-top: 0;">Educational Note</h3>
-                        <p>Taking courses at Coast Mountain College such as <strong>Introduction to Marketing</strong> and <strong>Business Finance</strong> would help you understand markets and how to price products accordingly!</p>
-                        <p>Interested in more information? Visit the <a href="https://coastmountaincollege.ca/programs/study/business" target="_blank">Coast Mountain College Business Administration website</a></p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Tariff button after 3rd attempt if not already applied
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        if not st.session_state.tariff_applied:
-                            # Fix for tariff button disappearing
-                            if st.button(
-                                "Impose Trump Tariff +25%", 
-                                key="apply_tariff",
-                                type="secondary"
-                            ):
-                                st.session_state.tariff_applied = True
-                                st.experimental_rerun()
-                    
-                    with col2:
-                        # New game button
-                        if st.button("Start New Game", key="new_game_button", type="primary"):
-                            reset_game()
-                            st.experimental_rerun()
-            except Exception as e:
-                st.error(f"Error displaying game summary: {str(e)}")
-        
-        # Show a placeholder message if no results to display yet
-        else:
-            st.markdown("""
-            <div style="text-align: center; padding: 30px; background-color: #f5f5f5; border-radius: 10px;">
-                <h3>Your results will appear here</h3>
-                <p>Adjust the car settings on the left and click "Simulate Market" to see how your design performs.</p>
-            </div>
-            """, unsafe_allow_html=True)
-            
-        st.markdown('</div>', unsafe_allow_html=True)
