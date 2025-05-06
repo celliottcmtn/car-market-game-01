@@ -577,6 +577,11 @@ elif st.session_state.game_state == "playing" or st.session_state.game_state == 
                         </div>
                         """, unsafe_allow_html=True)
                 
+                
+            except Exception as e:
+                st.error(f"Error displaying results: {str(e)}")
+
+            try:
                 # Game over summary at the end
                 if st.session_state.game_state == "game_over":
                     # Calculate best attempt
